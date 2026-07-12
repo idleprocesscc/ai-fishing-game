@@ -2117,8 +2117,20 @@ def _eff_weight(f, loc_id, sea_id, bait_id):
         w *= loc.get("tag_weight_mult", {}).get(tag, 1.0)
         w *= sea.get("tag_weight_mult", {}).get(tag, 1.0)
         w *= bait["effects"].get("tag_weight_mult", {}).get(tag, 1.0)
+        w *= _current_condition(loc_id).get("tag_weight_mult", {}).get(tag, 1.0)
     w *= bait["effects"].get("rarity_weight_mult", {}).get(f["rarity"], 1.0)
     return w
+def _current_condition(loc_id=None):
+    """Deterministic water/weather state that does not consume game RNG."""
+    loc_id = loc_id or S["location_id"]
+    pool = globals().get("_REAL_WORLD_CONDITIONS", {}).get(loc_id, [])
+    if not pool: return {"name_zh": "水况稳定", "name_en": "Steady water", "fact_zh": "当前没有显著水况变化。", "tag_weight_mult": {}}
+    salt = sum((i + 1) * ord(ch) for i, ch in enumerate(loc_id))
+    return pool[(int(S.get("seed", 0)) + int(S.get("turn", 0)) // 4 + salt) % len(pool)]
+def _c_conditions():
+    c = _current_condition(); boosts = c.get("tag_weight_mult", {})
+    effect = "、".join("%s ×%s" % (k, v) for k, v in boosts.items()) or "无显著偏向"
+    return "[水况观察] %s / %s\n%s\n生态权重：%s\n水况每4个行动阶段性变化；它只改变当地已有物种的活动概率。" % (c["name_zh"], c["name_en"], c["fact_zh"], effect)
 def _wpick(rng, items, weights):
     total = sum(weights); r = rng.random() * total; up = 0.0
     for it, w in zip(items, weights):
@@ -2297,7 +2309,7 @@ def _c_status():
     unlocked_dive_names = [LOCATIONS[l]["name"] for l in S.get("dive_unlocked", []) if l in LOCATIONS]
     if unlocked_dive_names: extra += "\n🗺️ Unlocked dive sites: " + ", ".join(unlocked_dive_names)
     air = ("\nOxygen tanks: %d (used by dive)" % S.get("oxygen", 0)) if (S.get("oxygen", 0) > 0 or S.get("oxygen_ever")) else ""
-    return "[Status] %s\nBait: %s%s\nUnsold catches: %d | Total casts %d%s" % (_footer(), baits, air, len(S["catch_inventory"]), S["stats"]["total_casts"], extra)
+    return "[Status] %s\nWater: %s | Bait: %s%s\nUnsold catches: %d | Total casts %d%s" % (_footer(), _current_condition()["name_zh"], baits, air, len(S["catch_inventory"]), S["stats"]["total_casts"], extra)
 def _c_shop():
     lines = ["%s  %s  %d pts  %s" % (b["id"], b["name"], b["cost"], ("has preference bonuses; use look" if (b["effects"].get("tag_weight_mult") or b["effects"].get("rarity_weight_mult")) else "no special effect")) for b in BAITS.values()]
     dive_open = bool(S.get("dive_unlocked"))   # Oxygen tanks are dive consumables bought in the shop.
@@ -2875,6 +2887,7 @@ Commands passed to cmd() are case-insensitive:
   cmd('open <chest_uid>')                Open a pending chest.
   cmd('encyclopedia')                    Show discovered fish and collected letters.
   cmd('journal')                         Show the ecological observation log, native status, and releases.
+  cmd('conditions')                      Explain current water/weather conditions and ecological effects.
   cmd('identify <fish_id> [choice]')     Inspect field marks, answer an identification exercise, and correct mistakes.
   cmd('look <id_or_name>')               Inspect a fish, location, bait, season, or item. Unknown fish stay hidden as ???.
   cmd('A; B; C')                         Run up to 8 commands as a batch, e.g. cmd('buy basic_worm 10; cast 10').
@@ -2897,7 +2910,7 @@ def _run_one(line):
     parts = line.split()
     c = parts[0].lower(); a = parts[1:]
     # During an expedition, only choices, surfacing, and read-only commands are allowed.
-    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "inventory", "inv", "i", "encyclopedia", "enc", "e", "journal", "j", "identify", "id", "look", "l", "help", "h"):
+    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "conditions", "water", "inventory", "inv", "i", "encyclopedia", "enc", "e", "journal", "j", "identify", "id", "look", "l", "help", "h"):
         return "You are still underwater. Use choose <number> for the current site, or surface to return."
     try:
         if c in ("help", "h"): return _HELP
@@ -2907,6 +2920,7 @@ def _run_one(line):
             return _exp_render_branch(exp["pending"]) if (exp and exp.get("pending")) else "There is no pending site to choose."
         elif c in ("surface", "up"): return _c_surface()
         elif c in ("status", "s"): return _c_status()
+        elif c in ("conditions", "water"): return _c_conditions()
         elif c == "shop": return _c_shop()
         elif c == "buy":
             if len(a) > 1 and not a[1].lstrip("+").isdigit():

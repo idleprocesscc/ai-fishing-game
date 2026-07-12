@@ -229,6 +229,27 @@ FISH["galjoen"]["quiz"] = {
     "wrong_zh": "单一颜色和单一地点都可能误导。尝试组合体型、鳍条、花纹与生境。",
 }
 
+CONDITIONS = {
+    "colorado_headwaters": [
+        {"name_zh": "融雪高水", "name_en": "Snowmelt high water", "fact_zh": "融雪使水温降低、流速升高，鱼会寻找缓流带节省能量。", "tag_weight_mult": {"coldwater": 1.25, "stream": 0.85}},
+        {"name_zh": "清澈低水", "name_en": "Clear low water", "fact_zh": "低水位提高能见度，也让鱼更容易察觉岸上的移动。", "tag_weight_mult": {"stream": 1.15, "native_colorado": 1.1}}],
+    "colorado_reservoir": [
+        {"name_zh": "背风湾平水", "name_en": "Calm sheltered cove", "fact_zh": "背风湾升温较快，暖水鱼可能靠近浅层结构。", "tag_weight_mult": {"warmwater": 1.35}},
+        {"name_zh": "深层冷水稳定", "name_en": "Stable cold depth", "fact_zh": "深水保留更低温度，但鱼仍需要足够的溶解氧。", "tag_weight_mult": {"coldwater": 1.3, "deep": 1.35}}],
+    "hokkaido_river": [
+        {"name_zh": "林荫清流", "name_en": "Clear shaded flow", "fact_zh": "河岸林遮阴能减缓水温上升，并向食物网输入昆虫。", "tag_weight_mult": {"coldwater": 1.25, "stream": 1.15}},
+        {"name_zh": "降雨涨水", "name_en": "Rain-swollen flow", "fact_zh": "涨水会重排浅滩与深潭的可用栖息地，也影响洄游通道。", "tag_weight_mult": {"migratory": 1.35}}],
+    "hokkaido_rocky_coast": [
+        {"name_zh": "海藻边缘缓流", "name_en": "Slack water at a kelp edge", "fact_zh": "海藻边缘兼有隐蔽与开阔觅食面，是生物密集的过渡带。", "tag_weight_mult": {"rocky": 1.25, "bottom": 1.15}},
+        {"name_zh": "港外浑水", "name_en": "Turbid harbor edge", "fact_zh": "浑浊降低视觉范围，依靠侧线或伏击的物种可能更占优势。", "tag_weight_mult": {"ambush": 1.35, "bottom": 1.15}}],
+    "cape_kelp_forest": [
+        {"name_zh": "海藻林浪涌", "name_en": "Kelp-forest surge", "fact_zh": "浪涌让巨藻廊道不断开合，礁栖鱼必须在水流中保持位置。", "tag_weight_mult": {"kelp": 1.35, "rocky": 1.2}},
+        {"name_zh": "冷水上升流", "name_en": "Cold upwelling", "fact_zh": "上升流把深层冷水和营养盐带到表层，支撑高生产力食物网。", "tag_weight_mult": {"coldwater": 1.35, "kelp": 1.15}}],
+    "cape_open_water": [
+        {"name_zh": "风成流线", "name_en": "Wind-current line", "fact_zh": "流线会聚集浮游生物和小鱼，从而吸引中上层捕食者。", "tag_weight_mult": {"pelagic": 1.4}},
+        {"name_zh": "洋流混合带", "name_en": "Current-mixing zone", "fact_zh": "水团交界并非固定边界，而是随风与海况移动的动态区域。", "tag_weight_mult": {"migratory": 1.3, "marine": 1.15}}],
+}
+
 
 BAITS = {
     "earthworm": {"id": "earthworm", "name": "蚯蚓", "name_en": "Earthworm", "cost": 8,
@@ -259,3 +280,4 @@ def install(namespace):
     namespace["DIVE_EVENTS"].clear()
     namespace["DIVE_ENCOUNTERS"][:] = []
     namespace["_REAL_WORLD_JUNK"] = SURFACE_JUNK
+    namespace["_REAL_WORLD_CONDITIONS"] = CONDITIONS
