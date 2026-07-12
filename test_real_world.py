@@ -1,5 +1,6 @@
 """Regression tests for the real-world field-journal content and rules."""
 import os
+import json
 import tempfile
 import unittest
 
@@ -62,6 +63,24 @@ class RealWorldDataTests(unittest.TestCase):
         second = engine._current_condition()
         self.assertEqual(first, second)
         self.assertEqual(engine.S["rngCalls"], before)
+
+    def test_fantasy_save_is_archived_without_stale_ids(self):
+        legacy = engine._new_state(5)
+        legacy["location_id"] = "moonlit_pond"
+        legacy["unlocked_locations"] = ["moonlit_pond", "reed_river"]
+        legacy["bait_inventory"] = {"basic_worm": 3}
+        legacy["encyclopedia"] = {"mud_carp": {"count": 1, "max_size": 20}}
+        legacy["catch_inventory"] = [{"instance_id": "c_001", "fish_id": "mud_carp", "size": 20, "value": 5}]
+        engine.S = None
+        with open(engine._SAVE, "w", encoding="utf-8") as f:
+            json.dump(legacy, f)
+        loaded = engine._load()
+        self.assertEqual(loaded["location_id"], "colorado_headwaters")
+        self.assertEqual(loaded["bait_inventory"], {"earthworm": 8})
+        self.assertEqual(loaded["encyclopedia"], {})
+        self.assertEqual(loaded["catch_inventory"], [])
+        self.assertEqual(loaded["legacy_archive_count"], 5)
+        self.assertIn("Archived 5", engine.cmd("status"))
 
 
 if __name__ == "__main__":

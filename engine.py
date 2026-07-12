@@ -2079,6 +2079,22 @@ def _load():
     S.setdefault("fever", 0); S.setdefault("free_bait", 0)
     S.setdefault("oxygen", 0); S.setdefault("oxygen_ever", False)
     S.setdefault("map_fragments", {})
+    # v1 fantasy saves contain ids that do not exist in the real-world pack.
+    # Preserve an audit count, then remove only incompatible content so status,
+    # inventory, and encyclopedia rendering cannot crash on stale references.
+    old_enc = [fid for fid in S.get("encyclopedia", {}) if fid not in FISH]
+    old_catches = [c for c in S.get("catch_inventory", []) if c.get("fish_id") not in FISH]
+    old_baits = [bid for bid in S.get("bait_inventory", {}) if bid not in BAITS]
+    legacy_n = len(old_enc) + len(old_catches) + sum(S.get("bait_inventory", {}).get(bid, 0) for bid in old_baits)
+    if legacy_n:
+        S["legacy_archive_count"] = S.get("legacy_archive_count", 0) + legacy_n
+        S["encyclopedia"] = {fid: e for fid, e in S.get("encyclopedia", {}).items() if fid in FISH}
+        S["catch_inventory"] = [c for c in S.get("catch_inventory", []) if c.get("fish_id") in FISH]
+        S["bait_inventory"] = {bid: n for bid, n in S.get("bait_inventory", {}).items() if bid in BAITS and n > 0}
+        S["bait_inventory"]["earthworm"] = S["bait_inventory"].get("earthworm", 0) + 8
+        _IO_WARN = (_IO_WARN + "\n" if _IO_WARN else "") + "📚 Archived %d incompatible fantasy-era record(s); granted 8 earthworms for the real-world field edition." % legacy_n
+    S["map_fragments"] = {lid: n for lid, n in S.get("map_fragments", {}).items() if lid in LOCATIONS}
+    S["dive_unlocked"] = [lid for lid in S.get("dive_unlocked", []) if lid in LOCATIONS]
     if S.get("location_id") not in LOCATIONS:
         old_loc = S.get("location_id", "(missing)")
         S["location_id"] = "colorado_headwaters"

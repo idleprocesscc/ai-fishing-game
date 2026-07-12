@@ -1,106 +1,144 @@
-# 🎣 Text Fishing for AI Players
+# 🌍🎣 World Waters Field Journal
 
-A single-file, zero-dependency, deterministic fishing game designed for an AI player.
+A deterministic, bilingual ecology game for AI players. Travel through real
+aquatic habitats, cast a line, identify species from field marks, release
+protected wildlife, record changing water conditions, and learn why each
+organism belongs where it was found.
 
-Buy bait, cast, catch fish by rarity odds, sell catches for points, unlock new waters, dive for underwater-only species, and fill the encyclopedia. The game state lives in `fishing_save.json`, not in chat history.
+This project keeps the compact command engine and reproducible random model of
+`tutusagi/ai-fishing-game`, but replaces its fantasy content with our own
+real-world field-journal system.
+
+## Language design
+
+- **English is canonical** for ids, scientific names, research notes, and
+  maintainable open-source data.
+- **Chinese is the default player experience** for narration and concise
+  science explanations.
+- Species records retain both `*_en` and `*_zh` fields so a complete English
+  interface can be added without rewriting the world database.
+
+## Current world
+
+The first field edition contains 9 habitats and 26 real species:
+
+- Colorado Rocky Mountain headwaters and foothills reservoir
+- Hokkaido forest river and rocky coast
+- Cape Peninsula kelp forest and Cape offshore water
+- Amazon flooded forest
+- Lake Baikal littoral
+- Mekong mainstem
+
+Every location has its own debris/natural-object pool and deterministic water
+conditions. Snowmelt, clear low water, flood pulses, tributary plumes,
+upwelling, and current-mixing zones alter the activity weights of species
+already present in the habitat; they never create impossible species.
+
+## Field-journal mechanics
+
+### Identification, including mistakes
+
+Some newly observed species enter the journal as `pending`. Use:
+
+```text
+identify rainbow_trout
+identify rainbow_trout 1
+```
+
+An incorrect answer is recorded as a corrected misidentification and explains
+which field mark was unreliable. A correct answer verifies the entry. The
+system emphasizes combinations of traits rather than color or body size alone.
+
+### Conservation and release
+
+Species marked `release_only` generate observation ids such as `obs_003`.
+They award journal credit but never enter the sale inventory. This includes
+protected or research-only encounters such as Colorado River cutthroat trout,
+Mekong giant catfish, giant barb, Baikal sturgeon, and small golomyanka.
+
+The game deliberately distinguishes broad educational conservation flags from
+real fishing permission. It is not a substitute for current local regulations.
+
+### Empty casts and unexpected objects
+
+A cast can produce a fish, no bite, a natural object, or human debris. Object
+pools are local: a Baikal amphipod molt, an Amazon fruit stone, discarded line,
+a kelp holdfast, or an old glass-float fragment each tells a different habitat
+story. Pulling up no fish is a valid field result.
+
+### Dynamic water observations
+
+```text
+conditions
+```
+
+shows the current deterministic water/weather phase, its ecological
+explanation, and the tags whose activity weights it changes. Conditions rotate
+every four actions without consuming the game PRNG, so identical seeds and
+commands remain reproducible.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `help` | Show the in-game command guide. |
+| `status` | Show points, location, season, water condition, bait, and progress. |
+| `conditions` | Explain the current water state and ecological weighting. |
+| `shop` / `buy <bait_id> [qty]` | Inspect or buy field tackle. |
+| `cast [bait_id] [N] [stop=...]` | Cast once or in a deterministic batch. |
+| `goto` / `goto <location_id>` | List or travel to real habitats. |
+| `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
+| `encyclopedia` | Show discovery and verification status. |
+| `journal` | Show native/introduced counts, releases, and corrected mistakes. |
+| `identify <fish_id> [choice]` | Study and verify an observed species. |
+| `look <id>` | Read the bilingual name, Latin name, field marks, ecology, and conservation note. |
+
+Commands may be batched with semicolons. `cast 10 stop=new,rare` is useful for
+AI play because it saves context while stopping at meaningful observations.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `engine.py` | Readable source. Public API: `cmd("command")` and `new_game(seed)`. |
-| `fishing.py` | Blind-play build. The engine is packed into base64 so an AI can play without reading fish tables or probabilities. |
-| `build_blind.py` | Rebuilds `fishing.py` from `engine.py`. |
-| `tool-schema.json` | JSON schema for a structured `play_fishing` tool. |
-| `examples/` | Integration examples. |
+| `engine.py` | Deterministic command engine and field-journal mechanics. |
+| `real_world_data.py` | Readable bilingual habitats, species, objects, water conditions, and quizzes. |
+| `fishing.py` | Generated single-file blind-play build for an AI player. |
+| `build_blind.py` | Bundles the engine and data module into `fishing.py`. |
+| `tool-schema.json` | Structured tool schema for an MCP/tool wrapper. |
+| `test_real_world.py` | Data-integrity, release, correction, and determinism tests. |
+| `SOURCES.md` | Research provenance and content policy. |
 
-## Quick Start
+## Quick start
 
-Requires Python 3.8+.
+Python 3.8+ with no third-party dependencies:
 
 ```python
-import engine          # or import fishing for the blind-play build
+import engine
 
-print(engine.cmd("help"))
+print(engine.new_game(2026))
 print(engine.cmd("status"))
-print(engine.cmd("cast"))
-print(engine.cmd("cast 10"))
-print(engine.cmd("cast 20 stop=rare"))
-print(engine.cmd("buy basic_worm 10; cast 10"))
-print(engine.new_game(2024))
+print(engine.cmd("conditions"))
+print(engine.cmd("cast 10 stop=new"))
+print(engine.cmd("journal"))
 ```
 
-Any input is safe: `cmd("...")` returns text instead of throwing to the caller. Save read/write problems are reported in the returned text.
+To let an AI discover content without reading tables, give it `fishing.py` and
+ask it to use only `cmd()` and `new_game()`.
 
-## Core Commands
-
-| Command | Effect |
-| --- | --- |
-| `help` | Show rules and command list. |
-| `status` | Show points, location, season, bait, oxygen, inventory counts, and progress. |
-| `shop` | Show bait and oxygen for sale. |
-| `buy <bait_id> [qty]` | Buy bait, e.g. `buy glow_bait 2`; buy oxygen with `buy oxygen 5`. |
-| `cast [bait_id] [N] [stop=new,rare,event]` | Cast once or batch-cast 1-20 times. Stop early on a new species, rare-or-better catch, or event. |
-| `dive [N] [stop=...]` | Start an underwater expedition after unlocking a dive site and buying oxygen. |
-| `choose <number>` | Choose at a paused major underwater site. Without a number, show choices again. |
-| `surface` | End the current expedition and surface. |
-| `goto` | List locations, unlock costs, and seasonal undiscovered counts. |
-| `goto <location_id>` | Travel to a location; locked locations cost points. |
-| `inventory` | Show catches, items, map fragments, and pending chests. |
-| `sell <catch_id>`, `sell all`, `sell species <fish_id>`, `sell item <item_id>` | Sell catches or treasures for points. |
-| `open <chest_uid>` | Open a pending chest. |
-| `encyclopedia` | Show discovered fish and collected letters. |
-| `look <id_or_name>` | Inspect a fish, location, bait, season, or item. Undiscovered fish remain hidden as `???`. |
-| `A; B; C` | Run up to 8 commands in one batch, e.g. `buy basic_worm 10; cast 10`. |
-
-## Notes for AI Integration
-
-Use batch casts to save turns and context:
-
-```text
-cast 10
-cast glow_bait 15 stop=rare
-goto reed_river; cast 8 stop=new
-```
-
-Every `cmd()` result ends with a compact status line:
-
-```text
-📊 {"pts": 270, "loc": "Reed River", "sea": "Spring", "turn": 6, "enc": "5/81", "bait": {"basic_worm": 2}, "hold": 6}
-```
-
-The JSON line is usually enough for the AI to decide the next move without calling `status` again.
-
-## Saves and Determinism
-
-- Saves live beside the script as `fishing_save.json`.
-- Deleting that file starts over.
-- The PRNG is deterministic. Same seed + same command sequence = reproducible results for that version.
-- Existing saves keep their ids and structure. If a save references a location no longer present in the current data set, the engine moves the player to `Moonlit Pond` and keeps the rest of the save.
-
-## Blind Play
-
-To let an AI play without spoilers, give it `fishing.py` and tell it to use only:
-
-```python
-import fishing
-print(fishing.cmd("help"))
-print(fishing.cmd("status"))
-print(fishing.cmd("cast 10"))
-```
-
-`fishing.py` is encoded, not encrypted. Blind play depends on cooperation: the AI should not decode `_BLOB` or inspect the packed engine.
-
-## Rebuilding
-
-After changing `engine.py`, rebuild the blind-play file:
+## Development
 
 ```bash
+python -m unittest -v test_real_world.py
 python build_blind.py
+python -m py_compile engine.py real_world_data.py fishing.py
 ```
 
-`fishing.py` is generated from `engine.py`, so the two stay behaviorally identical.
+`fishing.py` is generated and should be rebuilt after any engine or world-data
+change. Existing fantasy-version saves migrate to the Colorado headwaters while
+compatible counters are retained.
 
-## License
+## Attribution and license
 
-MIT. See `LICENSE`.
+Forked from [`tutusagi/ai-fishing-game`](https://github.com/tutusagi/ai-fishing-game).
+The original architecture and this derivative are available under the MIT
+License; see `LICENSE`. The original copyright notice is retained.

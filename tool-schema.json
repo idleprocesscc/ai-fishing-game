@@ -1,5 +1,5 @@
 {
-  "name": "play_fishing",
+  "name": "explore_world_waters",
   "description": "A deterministic real-world fishing and ecology field journal. Travel through real habitats, identify native and introduced species, automatically release protected wildlife, record scientific observations, and encounter location-specific debris or empty casts. Actions: status, shop, buy, cast, goto, inventory, sell, encyclopedia, journal, look, batch. Prefer batch casts with times and stop_on instead of one cast per message. Every result ends with a compact 📊 status JSON line.",
   "parameters": {
     "type": "object",

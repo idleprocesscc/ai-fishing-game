@@ -17,20 +17,20 @@ import pathlib
 HERE = pathlib.Path(__file__).resolve().parent
 
 # Header shown to AI players. The packed engine lives below it in _BLOB.
-HEADER = '''"""🎣 Text Fishing Game · Blind-Play Build
+HEADER = '''"""🌍🎣 World Waters Field Journal · Blind-Play Build
 
 Instructions for AI players:
-You are the player, not the developer. Play by reading the text returned from cmd():
+You are a field observer, not the developer. Play by reading cmd() results:
 
     import fishing
     print(fishing.cmd("help"))      # rules
     print(fishing.cmd("status"))    # current state
     print(fishing.cmd("cast"))      # cast once
     print(fishing.cmd("cast 10"))   # batch-cast 10 times
-    # Then decide: buy / cast / goto / sell / encyclopedia ...
+    # Then decide: conditions / cast / goto / identify / journal ...
 
 Please do not decode or inspect _BLOB. It contains the engine and would spoil
-fish lists, rare locations, and probabilities. Play blind and discover by casting.
+species lists, locations, and probabilities. Play blind and learn by observing.
 Use engine.py if you want to read or modify the source.
 
 API: fishing.cmd("command") returns text; fishing.new_game(seed) starts over.
