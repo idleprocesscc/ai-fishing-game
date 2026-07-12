@@ -1,6 +1,6 @@
 {
   "name": "explore_world_waters",
-  "description": "A deterministic bilingual real-world fishing and ecology field journal. Travel through real habitats, inspect water conditions, identify native and introduced species, automatically release protected wildlife, deepen repeated observations, unlock ecological relationships, record corrections, and encounter location-specific natural objects, debris, or empty casts. Prefer batch casts with times and stop_on. Every result ends with a compact status JSON line.",
+  "description": "A deterministic bilingual real-world fishing and ecology field journal. Travel through real habitats, inspect water conditions, identify native and introduced species, automatically release protected fish, observe rather than catch birds/mammals/invertebrates/plants, deepen repeated observations, unlock ecological relationships, record corrections, and encounter location-specific natural objects, debris, or empty casts. Prefer batch casts with times and stop_on. Every result ends with a compact status JSON line.",
   "parameters": {
     "type": "object",
     "properties": {

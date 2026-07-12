@@ -41,6 +41,14 @@ class RealWorldDataTests(unittest.TestCase):
                 self.assertTrue(set(relationship["requires"]).issubset(engine.FISH))
                 self.assertTrue(relationship["fact_zh"])
 
+    def test_wildlife_records_reference_real_places(self):
+        for wildlife_id, record in engine.WILDLIFE.items():
+            with self.subTest(wildlife=wildlife_id):
+                self.assertTrue(set(record["locations"]).issubset(engine.LOCATIONS))
+                self.assertTrue(set(record["seasons"]).issubset(engine.SEASONS))
+                self.assertTrue(record["fact_en"])
+                self.assertTrue(record["fact_zh"])
+
     def test_every_location_has_junk_and_conditions(self):
         for location_id in engine.LOCATIONS:
             with self.subTest(location=location_id):
@@ -109,6 +117,22 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertIn("[非鱼类发现]", journal)
         self.assertIn(found, journal)
         self.assertIn("×2", journal)
+
+    def test_wildlife_outcome_is_observation_not_inventory(self):
+        class FixedRng:
+            def __init__(self):
+                self.values = iter((0.5, 0.01, 0.0))
+            def random(self):
+                return next(self.values)
+            def rint(self, low, high):
+                return low + int(self.random() * (high - low + 1))
+        before = len(engine.S["catch_inventory"])
+        result = engine._cast_step(FixedRng(), "earthworm")
+        self.assertEqual(result["kind"], "wildlife")
+        self.assertIn("只记录，不接近、不投喂、不捕捉", result["text"])
+        self.assertEqual(len(engine.S["catch_inventory"]), before)
+        self.assertEqual(engine.S["stats"]["wildlife_observations"], 1)
+        self.assertTrue(any(key.startswith("wildlife|") for key in engine.S["field_observations"]))
 
     def test_public_command_surface_smoke(self):
         commands = ["help", "status", "conditions", "shop", "goto", "inventory",

@@ -20,6 +20,7 @@ must never present itself as current legal advice.
 - [Hokkaido Government — Fish Encyclopedia](https://www.pref.hokkaido.lg.jp/sr/gid/sr_ske_index.html)
 - [Hokkaido Government — Fishing Rules and Manners](https://www.pref.hokkaido.lg.jp/sr/ggk/ggs/turi-r-m/rule-manner.html)
 - [Hokkaido Government — Cherry Salmon](https://www.pref.hokkaido.lg.jp/sr/gid/fis023.html)
+- [Hokkaido Government — Shiretoko sea-land food web ordinance](https://www.pref.hokkaido.lg.jp/fs/1/2/1/4/3/9/8/8/_/%E6%9D%A1%E4%BE%8B%E6%9C%AC%E6%96%87%E8%8B%B1%E8%A8%B3%E7%89%88.pdf)
 
 ## Amazon basin
 
@@ -37,6 +38,7 @@ must never present itself as current legal advice.
 
 - [Mekong River Commission — Giant fish biology and management](https://www.mrcmekong.org/publications/mekong-giant-fish-species-on-their-management-and-biology/)
 - [Mekong River Commission — Fish abundance and diversity monitoring 2018–2022](https://www.mrcmekong.org/wp-content/uploads/2023/12/Fish-Abundance-and-Diversity-Monitoring-Report-2018-2022.pdf)
+- [Mekong River Commission — Basin biomonitoring and Irrawaddy dolphin](https://portal.mrcmekong.org/monitoring/biomonitoring)
 
 ## Cape waters
 

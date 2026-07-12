@@ -21,6 +21,9 @@
   it advances through actions instead of requiring real-time waiting.
 - Added genuine empty casts, local natural-object/debris pools, and cleanup
   records.
+- Added 18 location- and season-aware wildlife observations covering birds,
+  insects, plants, algae, invertebrates, seals, whales, and river dolphins;
+  wildlife is explicitly never a catch target.
 - Added safe migration that archives incompatible fantasy-era ids.
 - Rebuilt the readable engine so no legacy fantasy tables remain embedded.
 - Added formal data-integrity, migration, release, correction, and determinism

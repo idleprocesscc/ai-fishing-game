@@ -15,6 +15,7 @@ from real_world_data import FISH as _FISH
 from real_world_data import LOCATIONS as _LOCATIONS
 from real_world_data import RELATIONSHIPS as _RELATIONSHIPS
 from real_world_data import SURFACE_JUNK as _SURFACE_JUNK
+from real_world_data import WILDLIFE as _WILDLIFE
 
 
 def _imul(a, b):
@@ -60,6 +61,7 @@ BAITS = copy.deepcopy(_BAITS)
 _REAL_WORLD_JUNK = copy.deepcopy(_SURFACE_JUNK)
 _REAL_WORLD_CONDITIONS = copy.deepcopy(_CONDITIONS)
 RELATIONSHIPS = copy.deepcopy(_RELATIONSHIPS)
+WILDLIFE = copy.deepcopy(_WILDLIFE)
 
 _SAVE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fishing_save.json")
 _IO_WARN = ""
@@ -77,7 +79,7 @@ def _new_state(seed=_DEFAULT_SEED):
         "bait_inventory": {"earthworm": 8}, "catch_inventory": [],
         "encyclopedia": {}, "field_observations": {}, "legacy_archive_count": 0,
         "stats": {"total_casts": 0, "total_caught": 0, "released": 0,
-                  "empty_casts": 0, "debris_removed": 0},
+                  "empty_casts": 0, "debris_removed": 0, "wildlife_observations": 0},
     }
 
 
@@ -297,6 +299,20 @@ def _cast_step(rng, bait_id):
         S["stats"]["empty_casts"] += 1
         return {"kind": "empty", "consumed": True,
                 "text": season_line + "〰 浮漂没有形成可靠咬口。空杆也是水况记录。"}
+    wildlife_pool = [item for item in WILDLIFE.values()
+                     if S["location_id"] in item["locations"] and S["season_id"] in item["seasons"]]
+    if wildlife_pool and rng.random() < 0.08:
+        observed = wildlife_pool[rng.rint(0, len(wildlife_pool) - 1)]
+        key = "wildlife|%s" % observed["id"]
+        note = S["field_observations"].setdefault(key, {
+            "location_id": S["location_id"], "wildlife_id": observed["id"],
+            "name": observed["name_zh"], "name_en": observed["name_en"],
+            "category": "wildlife", "count": 0, "human_debris": False})
+        note["count"] += 1
+        S["stats"]["wildlife_observations"] += 1
+        return {"kind": "wildlife", "consumed": True,
+                "text": season_line + "🔭 野外观察：%s / %s\n%s\n只记录，不接近、不投喂、不捕捉。" % (
+                    observed["name_zh"], observed["name_en"], observed["fact_zh"])}
     junk_chance = loc["junk_chance_base"] * BAITS[bait_id]["effects"].get("junk_chance_mult", 1.0)
     if rng.random() < junk_chance:
         pool = _REAL_WORLD_JUNK[S["location_id"]]
@@ -342,14 +358,14 @@ def _c_cast(bait_id=None, times=1, stop=None):
         results.append(result)
         if not result["consumed"]:
             break
-        if ("new" in stop and result.get("first")) or ("rare" in stop and result.get("rare")) or ("event" in stop and result["kind"] == "junk"):
+        if ("new" in stop and result.get("first")) or ("rare" in stop and result.get("rare")) or ("event" in stop and result["kind"] in ("junk", "wildlife")):
             break
     S["rngState"], S["rngCalls"] = rng.state, rng.calls
     if len(results) == 1:
         return results[0]["text"]
     highlights = [r["text"] for r in results if r.get("first") or r.get("rare")]
-    counts = {kind: sum(r["kind"] == kind for r in results) for kind in ("fish", "empty", "junk")}
-    summary = "🎣 批量抛竿 %d次：鱼%d · 空杆%d · 其他发现%d" % (len(results), counts["fish"], counts["empty"], counts["junk"])
+    counts = {kind: sum(r["kind"] == kind for r in results) for kind in ("fish", "empty", "junk", "wildlife")}
+    summary = "🎣 批量抛竿 %d次：鱼%d · 空杆%d · 物件%d · 野外观察%d" % (len(results), counts["fish"], counts["empty"], counts["junk"], counts["wildlife"])
     return summary + (("\n\n" + "\n——\n".join(highlights)) if highlights else "")
 
 
@@ -357,10 +373,10 @@ def _c_status():
     bait = "、".join("%s×%d" % (BAITS[bid]["name"], n) for bid, n in S["bait_inventory"].items() if bid in BAITS and n > 0) or "无"
     condition = _current_condition()
     return ("[状态] %d pts | %s · %s | 第%d回合 | 图鉴%d/%d\n"
-            "时段：%s | 水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 清理废弃物%d") % (
+            "时段：%s | 水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 野外观察%d | 清理废弃物%d") % (
                 S["points"], LOCATIONS[S["location_id"]]["name"], SEASONS[S["season_id"]]["name"],
                 S["turn"], len(S["encyclopedia"]), len(FISH), _current_time()["name_zh"], condition["name_zh"], bait,
-                len(S["catch_inventory"]), S["stats"]["empty_casts"], S["stats"]["released"], S["stats"]["debris_removed"])
+                len(S["catch_inventory"]), S["stats"]["empty_casts"], S["stats"]["released"], S["stats"]["wildlife_observations"], S["stats"]["debris_removed"])
 
 
 def _c_conditions():
@@ -464,13 +480,15 @@ def _c_journal():
     observations = sorted(S.get("field_observations", {}).values(), key=lambda item: (-item["count"], item["name"]))
     object_lines = ""
     if observations:
-        object_lines = "\n[非鱼类发现]\n" + "\n".join("%s %s · %s ×%d" % (
-            "🧹" if item.get("human_debris") else "◦", LOCATIONS[item["location_id"]]["name"], item["name"], item["count"]
+        object_lines = "\n[非鱼类发现]\n" + "\n".join("%s %s · %s%s ×%d" % (
+            "🔭" if item.get("category") == "wildlife" else ("🧹" if item.get("human_debris") else "◦"),
+            LOCATIONS[item["location_id"]]["name"], item["name"],
+            (" / " + item["name_en"]) if item.get("name_en") else "", item["count"]
         ) for item in observations[:12])
     return (("[观察日志] 物种%d/%d · 原生%d · 引入%d · 待鉴定%d · 深入观察%d\n"
-            "保护放流%d · 纠错%d · 空杆%d · 清理废弃物%d\n"
+            "保护放流%d · 野外观察%d · 纠错%d · 空杆%d · 清理废弃物%d\n"
             "用 identify <fish_id> 学习鉴别，用 look <fish_id> 阅读科普。") % (
-                len(seen), len(FISH), native, introduced, pending, studied, S["stats"]["released"],
+                len(seen), len(FISH), native, introduced, pending, studied, S["stats"]["released"], S["stats"]["wildlife_observations"],
                 corrections, S["stats"]["empty_casts"], S["stats"]["debris_removed"])) + object_lines
 
 
@@ -549,6 +567,12 @@ def _c_look(query):
     bait = _find(BAITS, query)
     if bait:
         return "%s / %s · %d pts\n%s" % (bait["name"], bait["name_en"], bait["cost"], bait["description"])
+    wildlife = _find(WILDLIFE, query)
+    if wildlife:
+        if "wildlife|%s" % wildlife["id"] not in S.get("field_observations", {}):
+            return "??? · 尚未在野外观察到该生物。"
+        return "%s / %s · %s\n%s\n状态：%s · 仅观察" % (
+            wildlife["name_zh"], wildlife["name_en"], wildlife["group"], wildlife["fact_zh"], wildlife["status"])
     return "没有这个对象：%s" % query
 
 

@@ -86,6 +86,15 @@ pools are local: a Baikal amphipod molt, an Amazon fruit stone, discarded line,
 a kelp holdfast, or an old glass-float fragment each tells a different habitat
 story. Pulling up no fish is a valid field result.
 
+### Wildlife is observed, never caught
+
+Some casts pause for a separate `🔭` observation: a dipper, mayfly nymph,
+Steller's sea eagle, kelp holdfast community, Baikal seal, Irrawaddy dolphin,
+or another organism associated with that habitat and season. These records
+never enter the creel. The game explicitly instructs the observer not to
+approach, feed, or capture wildlife. Once seen, a record can be revisited with
+`look <wildlife_id>` and appears in the non-fish section of `journal`.
+
 ### Dynamic water observations
 
 ```text
@@ -109,7 +118,7 @@ consuming the game PRNG, so identical seeds and commands remain reproducible.
 | `goto` / `goto <location_id>` | List or travel to real habitats. |
 | `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
 | `encyclopedia` | Show discovery and verification status. |
-| `journal` | Show native/introduced counts, releases, and corrected mistakes. |
+| `journal` | Show native/introduced counts, releases, wildlife, non-fish finds, and corrected mistakes. |
 | `ecosystem` | Show food-web, habitat, migration, and conservation relationships supported by observations. |
 | `identify <fish_id> [choice]` | Study and verify an observed species. |
 | `look <id>` | Read the bilingual name, Latin name, field marks, ecology, and conservation note. |
