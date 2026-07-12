@@ -337,6 +337,16 @@ FISH["galjoen"]["quiz"] = {
     "wrong_zh": "单一颜色和单一地点都可能误导。尝试组合体型、鳍条、花纹与生境。",
 }
 
+# Behavior tags used by the deterministic day-cycle layer. These are modest
+# probability nudges, never guarantees: habitat, season, water, and bait still
+# combine with time of day.
+FISH["brown_trout"]["tags"].append("low_light")
+FISH["electric_eel"]["tags"].extend(["low_light", "nocturnal"])
+FISH["japanese_flounder"]["tags"].append("low_light")
+FISH["small_golomyanka"]["tags"].append("vertical_migrant")
+FISH["snoek"]["tags"].append("daylight")
+FISH["yellowtail_amberjack"]["tags"].append("daylight")
+
 CONDITIONS = {
     "colorado_headwaters": [
         {"name_zh": "融雪高水", "name_en": "Snowmelt high water", "fact_zh": "融雪使水温降低、流速升高，鱼会寻找缓流带节省能量。", "tag_weight_mult": {"coldwater": 1.25, "stream": 0.85}},

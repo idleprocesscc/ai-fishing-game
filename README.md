@@ -34,6 +34,11 @@ conditions. Snowmelt, clear low water, flood pulses, tributary plumes,
 upwelling, and current-mixing zones alter the activity weights of species
 already present in the habitat; they never create impossible species.
 
+An eight-action field day cycles through dawn, day, dusk, and night. Each phase
+lasts two actions and modestly changes tagged behaviors such as low-light,
+nocturnal, daylight, or vertical-migration activity. Time is simulated rather
+than tied to the player's clock, so nobody has to wait until real midnight.
+
 ## Field-journal mechanics
 
 ### Identification, including mistakes
@@ -72,10 +77,10 @@ story. Pulling up no fish is a valid field result.
 conditions
 ```
 
-shows the current deterministic water/weather phase, its ecological
-explanation, and the tags whose activity weights it changes. Conditions rotate
-every four actions without consuming the game PRNG, so identical seeds and
-commands remain reproducible.
+shows the current deterministic water/weather phase and time of day, their
+ecological explanations, and the tags whose activity weights they change.
+Water conditions rotate every four actions and time every two, without
+consuming the game PRNG, so identical seeds and commands remain reproducible.
 
 ## Commands
 

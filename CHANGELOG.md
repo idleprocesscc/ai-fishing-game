@@ -15,6 +15,8 @@
   counts rather than treating the first guess as automatically correct.
 - Added deterministic local water conditions that alter activity weighting
   without consuming the game PRNG.
+- Added a simulated dawn/day/dusk/night cycle with behavior-specific weighting;
+  it advances through actions instead of requiring real-time waiting.
 - Added genuine empty casts, local natural-object/debris pools, and cleanup
   records.
 - Added safe migration that archives incompatible fantasy-era ids.

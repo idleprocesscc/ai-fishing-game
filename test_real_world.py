@@ -64,6 +64,22 @@ class RealWorldDataTests(unittest.TestCase):
         second = engine._current_condition()
         self.assertEqual(first, second)
         self.assertEqual(engine.S["rngCalls"], before)
+        time_first = engine._current_time()
+        time_second = engine._current_time()
+        self.assertEqual(time_first, time_second)
+        self.assertEqual(engine.S["rngCalls"], before)
+
+    def test_day_cycle_advances_every_two_actions(self):
+        engine.S["turn"] = 0
+        self.assertEqual(engine._current_time()["id"], "dawn")
+        engine.S["turn"] = 2
+        self.assertEqual(engine._current_time()["id"], "day")
+        engine.S["turn"] = 4
+        self.assertEqual(engine._current_time()["id"], "dusk")
+        engine.S["turn"] = 6
+        self.assertEqual(engine._current_time()["id"], "night")
+        engine.S["turn"] = 8
+        self.assertEqual(engine._current_time()["id"], "dawn")
 
     def test_nonfish_find_is_persisted_in_field_journal(self):
         location_id = engine.S["location_id"]

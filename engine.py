@@ -148,6 +148,17 @@ def _current_condition(location_id=None):
     return pool[index]
 
 
+def _current_time():
+    """Eight-action field day: each phase lasts two actions."""
+    phases = [
+        {"id": "dawn", "name_zh": "黎明", "name_en": "Dawn", "fact_zh": "光线快速变化，低光活动与日间活动可能短暂重叠。", "tag_weight_mult": {"low_light": 1.25, "daylight": 1.1}},
+        {"id": "day", "name_zh": "白昼", "name_en": "Day", "fact_zh": "强光提高视觉觅食机会，也可能让警觉的鱼退向遮蔽物。", "tag_weight_mult": {"daylight": 1.35, "nocturnal": 0.65}},
+        {"id": "dusk", "name_zh": "黄昏", "name_en": "Dusk", "fact_zh": "光照下降会改变捕食距离与活动边界，但不会保证咬口。", "tag_weight_mult": {"low_light": 1.4, "nocturnal": 1.15}},
+        {"id": "night", "name_zh": "夜间", "name_en": "Night", "fact_zh": "视觉之外的嗅觉、侧线和电感受等线索相对更重要。", "tag_weight_mult": {"nocturnal": 1.55, "daylight": 0.6, "vertical_migrant": 1.25}},
+    ]
+    return phases[(S["turn"] // 2) % len(phases)]
+
+
 def _eligible(fish, location_id, season_id):
     return location_id in fish["locations"] and season_id in fish["seasons"]
 
@@ -157,12 +168,14 @@ def _weight(fish, bait_id):
     season = SEASONS[S["season_id"]]
     bait = BAITS[bait_id]
     condition = _current_condition()
+    time_phase = _current_time()
     weight = RARITY[fish["rarity"]]["weight"] * fish.get("individual_weight", 1.0)
     for tag in fish.get("tags", []):
         weight *= loc.get("tag_weight_mult", {}).get(tag, 1.0)
         weight *= season.get("tag_weight_mult", {}).get(tag, 1.0)
         weight *= bait["effects"].get("tag_weight_mult", {}).get(tag, 1.0)
         weight *= condition.get("tag_weight_mult", {}).get(tag, 1.0)
+        weight *= time_phase.get("tag_weight_mult", {}).get(tag, 1.0)
     weight *= bait["effects"].get("rarity_weight_mult", {}).get(fish["rarity"], 1.0)
     return weight
 
@@ -323,17 +336,20 @@ def _c_status():
     bait = "、".join("%s×%d" % (BAITS[bid]["name"], n) for bid, n in S["bait_inventory"].items() if bid in BAITS and n > 0) or "无"
     condition = _current_condition()
     return ("[状态] %d pts | %s · %s | 第%d回合 | 图鉴%d/%d\n"
-            "水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 清理废弃物%d") % (
+            "时段：%s | 水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 清理废弃物%d") % (
                 S["points"], LOCATIONS[S["location_id"]]["name"], SEASONS[S["season_id"]]["name"],
-                S["turn"], len(S["encyclopedia"]), len(FISH), condition["name_zh"], bait,
+                S["turn"], len(S["encyclopedia"]), len(FISH), _current_time()["name_zh"], condition["name_zh"], bait,
                 len(S["catch_inventory"]), S["stats"]["empty_casts"], S["stats"]["released"], S["stats"]["debris_removed"])
 
 
 def _c_conditions():
     condition = _current_condition()
+    time_phase = _current_time()
     effects = "、".join("%s ×%s" % pair for pair in condition.get("tag_weight_mult", {}).items()) or "无显著偏向"
-    return "[水况观察] %s / %s\n%s\n生态权重：%s\n每4个行动阶段性变化，不消耗随机数。" % (
-        condition["name_zh"], condition["name_en"], condition["fact_zh"], effects)
+    time_effects = "、".join("%s ×%s" % pair for pair in time_phase.get("tag_weight_mult", {}).items()) or "无显著偏向"
+    return "[环境观察]\n水况：%s / %s\n%s\n水况权重：%s\n\n时段：%s / %s\n%s\n时段权重：%s\n水况每4个行动、时段每2个行动变化；查看环境不消耗随机数。" % (
+        condition["name_zh"], condition["name_en"], condition["fact_zh"], effects,
+        time_phase["name_zh"], time_phase["name_en"], time_phase["fact_zh"], time_effects)
 
 
 def _c_shop():
