@@ -1,4 +1,4 @@
-# 游戏存档（每个玩家本地生成，不要提交）
+# Local player saves; do not commit.
 fishing_save.json
 **/fishing_save.json
 
@@ -6,7 +6,7 @@ fishing_save.json
 __pycache__/
 *.pyc
 
-# 编辑器
+# Editors
 .vscode/
 .idea/
 .DS_Store
