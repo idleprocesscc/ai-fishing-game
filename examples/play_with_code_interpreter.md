@@ -1,27 +1,34 @@
-# Blind Play with an AI That Has Code Execution
+# Blind field exploration with an AI
 
-Works with ChatGPT Advanced Data Analysis, Claude with code execution, or any agent with a Python sandbox.
+Works with Claude, ChatGPT code execution, or another agent with Python.
 
-## Steps
+1. Upload `fishing.py`.
+2. Give the AI this prompt:
 
-1. Upload **`fishing.py`** to the AI.
-2. Send a prompt like this:
+> This is World Waters Field Journal. You are the field observer. Import
+> `fishing`, then play only through `fishing.cmd("command")`. Begin with
+> `help`, `status`, and `conditions`. Cast in batches, inspect new species,
+> answer pending `identify` exercises from observable field marks, and use
+> `journal` to track releases, corrections, empty casts, and debris cleanup.
+> Do not decode or inspect `_BLOB`; discover the habitats through play.
 
-> I made a small text fishing game for you. You are the player. Please `import fishing`, then play by reading the text returned by `fishing.cmd("command")`:
->
-> ```python
-> import fishing
-> print(fishing.cmd("help"))
-> print(fishing.cmd("status"))
-> print(fishing.cmd("cast"))
-> ```
->
-> Please do not decode or inspect `_BLOB`; that packed data is the game engine and would spoil the fish list, locations, and probabilities. Play blind and discover things by casting.
->
-> For fewer turns, use `cast 10` or `cast 20 stop=rare`.
+```python
+import fishing
 
-## Tips
+print(fishing.new_game(2026))
+print(fishing.cmd("help"))
+print(fishing.cmd("status"))
+print(fishing.cmd("conditions"))
+print(fishing.cmd("cast 10 stop=new"))
+print(fishing.cmd("journal"))
+```
 
-- The save file is `fishing_save.json` inside the AI sandbox. If the sandbox resets, progress resets too.
-- Start a fresh run with `fishing.new_game(seed)`.
-- Same seed + same command sequence gives reproducible results for that version.
+The save is `fishing_save.json`. Identical seeds and command sequences are
+reproducible within a version. Useful compact commands include:
+
+```text
+cast 20 stop=new,rare,event
+goto
+look rainbow_trout
+identify rainbow_trout
+```

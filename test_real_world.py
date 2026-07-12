@@ -11,6 +11,7 @@ class RealWorldDataTests(unittest.TestCase):
     def setUp(self):
         engine._SAVE = os.path.join(tempfile.mkdtemp(), "save.json")
         engine.S = None
+        engine._IO_WARN = ""
         engine.new_game(20260711)
 
     def test_world_has_three_distinct_expansion_regions(self):
@@ -63,6 +64,38 @@ class RealWorldDataTests(unittest.TestCase):
         second = engine._current_condition()
         self.assertEqual(first, second)
         self.assertEqual(engine.S["rngCalls"], before)
+
+    def test_nonfish_find_is_persisted_in_field_journal(self):
+        location_id = engine.S["location_id"]
+        found = engine._REAL_WORLD_JUNK[location_id][0]
+        key = "%s|%s" % (location_id, found)
+        engine.S["field_observations"][key] = {
+            "location_id": location_id, "name": found, "count": 2, "human_debris": False}
+        journal = engine._c_journal()
+        self.assertIn("[非鱼类发现]", journal)
+        self.assertIn(found, journal)
+        self.assertIn("×2", journal)
+
+    def test_public_command_surface_smoke(self):
+        commands = ["help", "status", "conditions", "shop", "goto", "inventory",
+                    "encyclopedia", "journal", "look colorado_headwaters",
+                    "buy earthworm 1", "cast 3", "sell all"]
+        for command in commands:
+            with self.subTest(command=command):
+                output = engine.cmd(command)
+                self.assertIn("📊 ", output)
+                self.assertNotIn("Traceback", output)
+
+    def test_seed_and_command_sequence_are_reproducible(self):
+        def replay():
+            engine._SAVE = os.path.join(tempfile.mkdtemp(), "save.json")
+            engine.S = None
+            engine._IO_WARN = ""
+            transcript = [engine.new_game(424242)]
+            transcript.extend(engine.cmd(command) for command in (
+                "conditions", "cast 6", "journal", "inventory", "sell all", "status"))
+            return transcript
+        self.assertEqual(replay(), replay())
 
     def test_fantasy_save_is_archived_without_stale_ids(self):
         legacy = engine._new_state(5)

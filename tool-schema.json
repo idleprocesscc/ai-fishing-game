@@ -1,55 +1,61 @@
 {
   "name": "explore_world_waters",
-  "description": "A deterministic real-world fishing and ecology field journal. Travel through real habitats, identify native and introduced species, automatically release protected wildlife, record scientific observations, and encounter location-specific debris or empty casts. Actions: status, shop, buy, cast, goto, inventory, sell, encyclopedia, journal, look, batch. Prefer batch casts with times and stop_on instead of one cast per message. Every result ends with a compact 📊 status JSON line.",
+  "description": "A deterministic bilingual real-world fishing and ecology field journal. Travel through real habitats, inspect water conditions, identify native and introduced species, automatically release protected wildlife, record corrections, and encounter location-specific natural objects, debris, or empty casts. Prefer batch casts with times and stop_on. Every result ends with a compact status JSON line.",
   "parameters": {
     "type": "object",
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["status", "conditions", "shop", "buy", "cast", "dive", "choose", "surface", "goto", "inventory", "sell", "open", "encyclopedia", "journal", "identify", "look", "batch"],
-        "description": "Action to perform. dive starts an expedition after buying oxygen; choose resolves a paused major underwater site; surface ends the expedition."
+        "enum": ["status", "conditions", "shop", "buy", "cast", "goto", "inventory", "sell", "encyclopedia", "journal", "identify", "look", "batch"],
+        "description": "Field-journal action to perform."
       },
       "choice": {
         "type": "number",
-        "description": "For choose: option number, starting at 1. Omit to show current choices again."
+        "description": "For identify: answer option number, starting at 1. Omit to show the field-mark exercise."
       },
       "bait_id": {
         "type": "string",
-        "description": "For buy/cast: bait id such as basic_worm, glow_bait, golden_lure, or oxygen. Cast omits bait to use the cheapest available bait; dive does not use bait."
+        "enum": ["earthworm", "spoon_lure", "soft_plastic"],
+        "description": "For buy/cast. Cast omits bait_id to use the cheapest available bait."
       },
       "times": {
         "type": "number",
-        "description": "For cast/dive: number of repeated steps, 1-20. Returns one compact summary."
+        "minimum": 1,
+        "maximum": 20,
+        "description": "For cast: deterministic repeated casts, compactly summarized."
       },
       "stop_on": {
         "type": "array",
-        "items": { "type": "string", "enum": ["new", "rare", "event"] },
-        "description": "Early stop conditions for repeated cast/dive: new species, rare-or-better catch, or event. Resources running out also stops."
+        "items": {"type": "string", "enum": ["new", "rare", "event"]},
+        "description": "Stop repeated casts on a new species, rare-or-better observation, or non-fish field event."
       },
       "qty": {
         "type": "number",
+        "minimum": 1,
+        "maximum": 100,
         "description": "For buy: quantity, default 1."
       },
       "target": {
         "type": "string",
-        "description": "For sell: catch id such as c_007, all, species <fish_id>, or item <item_id>."
+        "description": "For sell: catch id, all, or species <fish_id>. Release-only wildlife never enters inventory."
       },
       "location_id": {
         "type": "string",
-        "description": "For goto: location id such as reed_river. Omit to list all locations."
+        "description": "For goto: canonical real-world location id. Omit to list the world map."
       },
-      "chest_uid": {
+      "fish_id": {
         "type": "string",
-        "description": "For open: pending chest uid such as ch_001, shown in inventory."
+        "description": "For identify: id of a species already observed."
       },
       "id": {
         "type": "string",
-        "description": "For look: object id or English display name for a fish, location, bait, season, or item. Undiscovered fish show as ???."
+        "description": "For look: species, location, or bait id/name. Unobserved species remain hidden."
       },
       "steps": {
         "type": "array",
-        "items": { "type": "object" },
-        "description": "For batch: up to 8 queued action objects. Example: [{\"action\":\"buy\",\"bait_id\":\"basic_worm\",\"qty\":10},{\"action\":\"cast\",\"times\":10}]."
+        "maxItems": 8,
+        "items": {"type": "object"},
+        "description": "For batch: up to 8 action objects."
       }
     },
     "required": ["action"]
