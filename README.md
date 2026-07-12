@@ -40,6 +40,12 @@ lasts two actions and modestly changes tagged behaviors such as low-light,
 nocturnal, daylight, or vertical-migration activity. Time is simulated rather
 than tied to the player's clock, so nobody has to wait until real midnight.
 
+Longer ecological episodes rotate every twelve actions. Insect emergence,
+migration windows, persistent swell, upwelling pulses, flooded-forest
+connection, littoral warming, and dry-season fragmentation can alter empty-cast,
+object, wildlife, or behavior-tag weights. They are directional ecological
+pressures rather than scripted guarantees.
+
 ## Field-journal mechanics
 
 ### Identification, including mistakes
@@ -112,8 +118,9 @@ conditions
 
 shows the current deterministic water/weather phase and time of day, their
 ecological explanations, and the tags whose activity weights they change.
-Water conditions rotate every four actions and time every two, without
-consuming the game PRNG, so identical seeds and commands remain reproducible.
+Ecological episodes rotate every twelve actions, water every four, and time
+every two, without consuming the game PRNG, so identical seeds and commands
+remain reproducible.
 
 ## Commands
 

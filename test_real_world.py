@@ -61,6 +61,12 @@ class RealWorldDataTests(unittest.TestCase):
             if fish.get("quiz"):
                 for key in ("question_en", "choices_en", "explanation_en", "wrong_en"):
                     self.assertTrue(fish["quiz"][key])
+        for location_id, episodes in engine.EPISODES.items():
+            self.assertIn(location_id, engine.LOCATIONS)
+            self.assertGreaterEqual(len(episodes), 2)
+            for episode in episodes:
+                for key in ("name_zh", "name_en", "fact_zh", "fact_en"):
+                    self.assertTrue(episode[key])
 
     def test_every_location_has_junk_and_conditions(self):
         for location_id in engine.LOCATIONS:
@@ -92,6 +98,10 @@ class RealWorldDataTests(unittest.TestCase):
         second = engine._current_condition()
         self.assertEqual(first, second)
         self.assertEqual(engine.S["rngCalls"], before)
+        episode_first = engine._current_episode()
+        episode_second = engine._current_episode()
+        self.assertEqual(episode_first, episode_second)
+        self.assertEqual(engine.S["rngCalls"], before)
         time_first = engine._current_time()
         time_second = engine._current_time()
         self.assertEqual(time_first, time_second)
@@ -108,6 +118,14 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertEqual(engine._current_time()["id"], "night")
         engine.S["turn"] = 8
         self.assertEqual(engine._current_time()["id"], "dawn")
+
+    def test_ecological_episode_advances_every_twelve_actions(self):
+        engine.S["turn"] = 0
+        first = engine._current_episode()["id"]
+        engine.S["turn"] = 11
+        self.assertEqual(engine._current_episode()["id"], first)
+        engine.S["turn"] = 12
+        self.assertNotEqual(engine._current_episode()["id"], first)
 
     def test_repeated_observation_unlocks_ecology_relationship(self):
         fish = engine.FISH["tambaqui"]

@@ -407,6 +407,36 @@ CONDITIONS = {
         {"name_zh": "旱季主槽收缩", "name_en": "Dry-season channel contraction", "fact_zh": "水位下降使深槽和支流汇口成为关键避难空间。", "tag_weight_mult": {"large_river": 1.3, "schooling": 1.2}}],
 }
 
+EPISODES = {
+    "colorado_headwaters": [
+        {"id": "insect_emergence", "name_zh": "水生昆虫集中羽化", "name_en": "Aquatic insect emergence", "fact_zh": "若虫集中羽化会短期改变水面食物供应，也吸引河乌等捕食者。", "fact_en": "A concentrated insect emergence briefly changes surface food supply and attracts predators such as dippers.", "tag_weight_mult": {"stream": 1.3}, "wildlife_mult": 1.35},
+        {"id": "warm_low_flow", "name_zh": "偏暖低流阶段", "name_en": "Warm low-flow episode", "fact_zh": "低流量和升温会压缩冷水避难空间；更少的水不等于更容易钓。", "fact_en": "Low flow and warming compress cold-water refuges; less water does not mean easier fishing.", "tag_weight_mult": {"coldwater": 0.75}, "empty_mult": 1.35}],
+    "colorado_reservoir": [
+        {"id": "turnover_mix", "name_zh": "水库翻转混合", "name_en": "Reservoir turnover mixing", "fact_zh": "水层混合会重新分配温度和氧气，鱼群位置可能随之变化。", "fact_en": "Water-column mixing redistributes temperature and oxygen, shifting where fish can remain active.", "tag_weight_mult": {"reservoir": 1.25}},
+        {"id": "shoreline_cleanup", "name_zh": "退水岸线暴露", "name_en": "Exposed drawdown shoreline", "fact_zh": "水位回落暴露遗留物，也创造一次清理岸线的机会。", "fact_en": "Drawdown exposes stranded debris and creates a shoreline-cleanup opportunity.", "tag_weight_mult": {}, "junk_mult": 1.5}],
+    "hokkaido_river": [
+        {"id": "migration_window", "name_zh": "洄游窗口", "name_en": "Migration window", "fact_zh": "适宜流量打开河海通道，但抵达不等于每条鱼都会进食。", "fact_en": "Suitable flow opens a river-sea corridor, but arrival never means every fish will feed.", "tag_weight_mult": {"migratory": 1.5}},
+        {"id": "storm_runoff", "name_zh": "暴雨径流阶段", "name_en": "Storm-runoff episode", "fact_zh": "浑水和漂流物增加，鱼会重新选择缓流区与遮蔽物。", "fact_en": "Turbidity and drifting material increase while fish redistribute among slack water and cover.", "tag_weight_mult": {"stream": 0.85}, "junk_mult": 1.35}],
+    "hokkaido_rocky_coast": [
+        {"id": "cold_productivity_pulse", "name_zh": "冷水生产力脉冲", "name_en": "Cold-water productivity pulse", "fact_zh": "营养与浮游生物变化会沿食物网向上影响沿岸鱼和海鸟。", "fact_en": "Changes in nutrients and plankton can propagate upward to coastal fish and seabirds.", "tag_weight_mult": {"coldwater": 1.25, "marine": 1.15}, "wildlife_mult": 1.2},
+        {"id": "rough_coast", "name_zh": "持续风浪", "name_en": "Persistent coastal swell", "fact_zh": "风浪首先限制安全观察，并增加挂到漂流物的机会。", "fact_en": "Swell first limits safe observation and increases encounters with drifting material.", "tag_weight_mult": {"rocky": 0.9}, "junk_mult": 1.25, "empty_mult": 1.2}],
+    "cape_kelp_forest": [
+        {"id": "upwelling_pulse", "name_zh": "上升流脉冲", "name_en": "Upwelling pulse", "fact_zh": "冷而富营养的水进入表层，效应会从初级生产逐步传到更高营养级。", "fact_en": "Cold nutrient-rich water reaches the surface, with effects propagating from primary production upward.", "tag_weight_mult": {"kelp": 1.3, "coldwater": 1.25}, "wildlife_mult": 1.2},
+        {"id": "kelp_wrack", "name_zh": "风暴后巨藻漂积", "name_en": "Post-storm kelp wrack", "fact_zh": "脱落巨藻把有机物与附着生物搬到新的岸段，也会缠住人造垃圾。", "fact_en": "Detached kelp moves organic matter and attached organisms while also trapping human debris.", "tag_weight_mult": {"kelp": 0.85}, "junk_mult": 1.45}],
+    "cape_open_water": [
+        {"id": "baitfish_aggregation", "name_zh": "小型鱼群聚集", "name_en": "Baitfish aggregation", "fact_zh": "流线聚集小型猎物时，海鸟和中上层捕食者可能同时响应。", "fact_en": "When current lines aggregate small prey, seabirds and pelagic predators may respond together.", "tag_weight_mult": {"pelagic": 1.45}, "wildlife_mult": 1.35},
+        {"id": "marine_heat_anomaly", "name_zh": "偏暖海水阶段", "name_en": "Warm-water anomaly", "fact_zh": "异常升温会重排活动范围；它不是简单的‘鱼更多’或‘鱼更少’。", "fact_en": "Unusual warming redistributes activity rather than producing a simple more-fish or fewer-fish outcome.", "tag_weight_mult": {"coldwater": 0.75, "migratory": 1.1}, "empty_mult": 1.15}],
+    "amazon_flooded_forest": [
+        {"id": "forest_connection", "name_zh": "泛滥森林连通", "name_en": "Flooded-forest connection", "fact_zh": "水进入林下后，鱼获得新的食物、庇护与移动路线。", "fact_en": "When water enters the forest, fish gain new food, shelter, and movement routes.", "tag_weight_mult": {"floodplain": 1.45, "fruit_eater": 1.4}, "wildlife_mult": 1.15},
+        {"id": "drought_refuge", "name_zh": "干旱湖洼避难", "name_en": "Drought-refuge isolation", "fact_zh": "水体隔离提高拥挤、缺氧和捕食压力，能呼吸空气也不代表不受影响。", "fact_en": "Isolation raises crowding, low-oxygen, and predation pressure; air breathing does not remove every risk.", "tag_weight_mult": {"air_breathing": 1.35, "floodplain": 0.7}, "empty_mult": 1.3}],
+    "baikal_littoral": [
+        {"id": "ice_edge_bloom", "name_zh": "冰缘浮游生物增长", "name_en": "Ice-edge plankton growth", "fact_zh": "冰下与冰缘的初级生产能为寒冷水柱食物网提供季节性能量。", "fact_en": "Primary production beneath and beside ice can supply seasonal energy to the cold-water food web.", "tag_weight_mult": {"lake": 1.25, "pelagic": 1.2}, "wildlife_mult": 1.15},
+        {"id": "littoral_warming", "name_zh": "沿岸偏暖阶段", "name_en": "Littoral warming episode", "fact_zh": "适应窄温度范围的特有生物可能在岸带升温时受到额外压力。", "fact_en": "Endemic organisms adapted to narrow temperatures may face added stress during littoral warming.", "tag_weight_mult": {"coldwater": 0.72, "baikal_endemic": 0.85}, "empty_mult": 1.25}],
+    "mekong_mainstem": [
+        {"id": "floodplain_reconnection", "name_zh": "洪泛区重新连通", "name_en": "Floodplain reconnection", "fact_zh": "上涨水位把主槽、支流和泛滥平原重新接成一张移动网络。", "fact_en": "Rising water reconnects channel, tributary, and floodplain into one movement network.", "tag_weight_mult": {"migratory": 1.45, "schooling": 1.2}, "wildlife_mult": 1.1},
+        {"id": "dry_pool_fragmentation", "name_zh": "旱季深潭分隔", "name_en": "Dry-season pool fragmentation", "fact_zh": "深潭成为避难所，但通道缩窄会同时影响鱼群和淡水豚的移动。", "fact_en": "Deep pools become refuges while narrowed connections constrain both fish and dolphin movement.", "tag_weight_mult": {"large_river": 0.8, "migratory": 0.7}, "empty_mult": 1.35}],
+}
+
 _CONDITION_FACT_EN = {
     "Snowmelt high water": "Snowmelt lowers water temperature and raises velocity, pushing fish toward slower refuges.",
     "Clear low water": "Low water improves visibility but also makes movement on the bank easier for fish to detect.",

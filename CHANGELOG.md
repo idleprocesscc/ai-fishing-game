@@ -25,6 +25,8 @@
   without consuming the game PRNG.
 - Added a simulated dawn/day/dusk/night cycle with behavior-specific weighting;
   it advances through actions instead of requiring real-time waiting.
+- Added 18 long-cycle ecological episodes that can alter activity, empty casts,
+  objects, or wildlife across twelve-action environmental phases.
 - Added genuine empty casts, local natural-object/debris pools, and cleanup
   records.
 - Added 18 location- and season-aware wildlife observations covering birds,

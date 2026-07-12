@@ -11,6 +11,7 @@ import re
 
 from real_world_data import BAITS as _BAITS
 from real_world_data import CONDITIONS as _CONDITIONS
+from real_world_data import EPISODES as _EPISODES
 from real_world_data import FISH as _FISH
 from real_world_data import LOCATIONS as _LOCATIONS
 from real_world_data import RELATIONSHIPS as _RELATIONSHIPS
@@ -60,6 +61,7 @@ FISH = copy.deepcopy(_FISH)
 BAITS = copy.deepcopy(_BAITS)
 _REAL_WORLD_JUNK = copy.deepcopy(_SURFACE_JUNK)
 _REAL_WORLD_CONDITIONS = copy.deepcopy(_CONDITIONS)
+EPISODES = copy.deepcopy(_EPISODES)
 RELATIONSHIPS = copy.deepcopy(_RELATIONSHIPS)
 WILDLIFE = copy.deepcopy(_WILDLIFE)
 
@@ -191,6 +193,14 @@ def _current_time():
     return phases[(S["turn"] // 2) % len(phases)]
 
 
+def _current_episode(location_id=None):
+    """Longer ecological phase: twelve actions, no PRNG consumption."""
+    location_id = location_id or S["location_id"]
+    pool = EPISODES[location_id]
+    salt = sum((i + 3) * ord(ch) for i, ch in enumerate(location_id))
+    return pool[(int(S["seed"]) + int(S["turn"]) // 12 + salt) % len(pool)]
+
+
 def _eligible(fish, location_id, season_id):
     return location_id in fish["locations"] and season_id in fish["seasons"]
 
@@ -201,6 +211,7 @@ def _weight(fish, bait_id):
     bait = BAITS[bait_id]
     condition = _current_condition()
     time_phase = _current_time()
+    episode = _current_episode()
     weight = RARITY[fish["rarity"]]["weight"] * fish.get("individual_weight", 1.0)
     for tag in fish.get("tags", []):
         weight *= loc.get("tag_weight_mult", {}).get(tag, 1.0)
@@ -208,6 +219,7 @@ def _weight(fish, bait_id):
         weight *= bait["effects"].get("tag_weight_mult", {}).get(tag, 1.0)
         weight *= condition.get("tag_weight_mult", {}).get(tag, 1.0)
         weight *= time_phase.get("tag_weight_mult", {}).get(tag, 1.0)
+        weight *= episode.get("tag_weight_mult", {}).get(tag, 1.0)
     weight *= bait["effects"].get("rarity_weight_mult", {}).get(fish["rarity"], 1.0)
     return weight
 
@@ -337,14 +349,15 @@ def _cast_step(rng, bait_id):
     loc = LOCATIONS[S["location_id"]]
 
     # A real cast can be quiet even when target species are present.
-    if rng.random() < 0.10:
+    episode = _current_episode()
+    if rng.random() < 0.10 * episode.get("empty_mult", 1.0):
         S["stats"]["empty_casts"] += 1
         _location_stat()["empty"] += 1
         return {"kind": "empty", "consumed": True,
                 "text": season_line + _bi("〰 浮漂没有形成可靠咬口。空杆也是水况记录。", "〰 The float shows no reliable bite. An empty cast is still a water observation.")}
     wildlife_pool = [item for item in WILDLIFE.values()
                      if S["location_id"] in item["locations"] and S["season_id"] in item["seasons"]]
-    if wildlife_pool and rng.random() < 0.08:
+    if wildlife_pool and rng.random() < 0.08 * episode.get("wildlife_mult", 1.0):
         observed = wildlife_pool[rng.rint(0, len(wildlife_pool) - 1)]
         key = "wildlife|%s" % observed["id"]
         note = S["field_observations"].setdefault(key, {
@@ -361,7 +374,7 @@ def _cast_step(rng, bait_id):
                     "🔭 Wildlife observation: %s\n%s\nRecord only: do not approach, feed, or capture.") % (
                     (observed["name_en"], _field(observed, "fact")) if _is_en()
                     else (observed["name_zh"], observed["name_en"], _field(observed, "fact"))))}
-    junk_chance = loc["junk_chance_base"] * BAITS[bait_id]["effects"].get("junk_chance_mult", 1.0)
+    junk_chance = loc["junk_chance_base"] * BAITS[bait_id]["effects"].get("junk_chance_mult", 1.0) * episode.get("junk_mult", 1.0)
     if rng.random() < junk_chance:
         pool = _REAL_WORLD_JUNK[S["location_id"]]
         found = pool[rng.rint(0, len(pool) - 1)]
@@ -427,23 +440,26 @@ def _c_cast(bait_id=None, times=1, stop=None):
 def _c_status():
     bait = _bi("、", ", ").join("%s×%d" % (_name(BAITS[bid]), n) for bid, n in S["bait_inventory"].items() if bid in BAITS and n > 0) or _bi("无", "none")
     condition = _current_condition()
-    template = _bi("[状态] %d pts | %s · %s | 第%d回合 | 图鉴%d/%d\n时段：%s | 水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 野外观察%d | 清理废弃物%d",
-                   "[Status] %d pts | %s · %s | turn %d | encyclopedia %d/%d\nTime: %s | Water: %s | Bait: %s\nCreel %d | empty %d | released %d | wildlife %d | debris removed %d")
+    episode = _current_episode()
+    template = _bi("[状态] %d pts | %s · %s | 第%d回合 | 图鉴%d/%d\n生态：%s | 时段：%s | 水况：%s | 鱼饵：%s\n鱼篓%d | 空杆%d | 保护放流%d | 野外观察%d | 清理废弃物%d",
+                   "[Status] %d pts | %s · %s | turn %d | encyclopedia %d/%d\nEpisode: %s | Time: %s | Water: %s | Bait: %s\nCreel %d | empty %d | released %d | wildlife %d | debris removed %d")
     return template % (
                 S["points"], _name(LOCATIONS[S["location_id"]]), _field(SEASONS[S["season_id"]], "name"),
-                S["turn"], len(S["encyclopedia"]), len(FISH), _field(_current_time(), "name"), _field(condition, "name"), bait,
+                S["turn"], len(S["encyclopedia"]), len(FISH), _field(episode, "name"), _field(_current_time(), "name"), _field(condition, "name"), bait,
                 len(S["catch_inventory"]), S["stats"]["empty_casts"], S["stats"]["released"], S["stats"]["wildlife_observations"], S["stats"]["debris_removed"])
 
 
 def _c_conditions():
     condition = _current_condition()
     time_phase = _current_time()
+    episode = _current_episode()
     effects = "、".join("%s ×%s" % pair for pair in condition.get("tag_weight_mult", {}).items()) or "无显著偏向"
     time_effects = "、".join("%s ×%s" % pair for pair in time_phase.get("tag_weight_mult", {}).items()) or "无显著偏向"
     if _is_en():
-        return "[Environment]\nWater: %s\n%s\nWater weights: %s\n\nTime: %s\n%s\nTime weights: %s\nWater changes every four actions and time every two; inspection consumes no random draw." % (
-            condition["name_en"], condition["fact_en"], effects, time_phase["name_en"], time_phase["fact_en"], time_effects)
-    return "[环境观察]\n水况：%s / %s\n%s\n水况权重：%s\n\n时段：%s / %s\n%s\n时段权重：%s\n水况每4个行动、时段每2个行动变化；查看环境不消耗随机数。" % (
+        return "[Environment]\nEcological episode: %s\n%s\n\nWater: %s\n%s\nWater weights: %s\n\nTime: %s\n%s\nTime weights: %s\nEpisode changes every twelve actions, water every four, and time every two; inspection consumes no random draw." % (
+            episode["name_en"], episode["fact_en"], condition["name_en"], condition["fact_en"], effects, time_phase["name_en"], time_phase["fact_en"], time_effects)
+    return "[环境观察]\n生态阶段：%s / %s\n%s\n\n水况：%s / %s\n%s\n水况权重：%s\n\n时段：%s / %s\n%s\n时段权重：%s\n生态阶段每12个行动、水况每4个行动、时段每2个行动变化；查看环境不消耗随机数。" % (
+        episode["name_zh"], episode["name_en"], episode["fact_zh"],
         condition["name_zh"], condition["name_en"], condition["fact_zh"], effects,
         time_phase["name_zh"], time_phase["name_en"], time_phase["fact_zh"], time_effects)
 
