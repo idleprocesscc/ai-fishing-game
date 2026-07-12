@@ -34,6 +34,13 @@ class RealWorldDataTests(unittest.TestCase):
                 self.assertTrue(set(fish["locations"]).issubset(engine.LOCATIONS))
                 self.assertTrue(set(fish["seasons"]).issubset(engine.SEASONS))
 
+    def test_ecology_relationships_reference_real_species_and_places(self):
+        for relationship in engine.RELATIONSHIPS:
+            with self.subTest(relationship=relationship["id"]):
+                self.assertIn(relationship["location_id"], engine.LOCATIONS)
+                self.assertTrue(set(relationship["requires"]).issubset(engine.FISH))
+                self.assertTrue(relationship["fact_zh"])
+
     def test_every_location_has_junk_and_conditions(self):
         for location_id in engine.LOCATIONS:
             with self.subTest(location=location_id):
@@ -81,6 +88,17 @@ class RealWorldDataTests(unittest.TestCase):
         engine.S["turn"] = 8
         self.assertEqual(engine._current_time()["id"], "dawn")
 
+    def test_repeated_observation_unlocks_ecology_relationship(self):
+        fish = engine.FISH["tambaqui"]
+        self.assertNotIn("森林结果，鱼群进食", engine._c_ecosystem())
+        for size in (40.0, 42.0, 44.0):
+            engine._record_catch(fish, size, 20)
+        entry = engine.S["encyclopedia"][fish["id"]]
+        self.assertEqual(engine._observation_level(entry)[0], "深入观察")
+        ecosystem = engine._c_ecosystem()
+        self.assertIn("森林结果，鱼群进食", ecosystem)
+        self.assertIn("Forest fruit becomes fish food", ecosystem)
+
     def test_nonfish_find_is_persisted_in_field_journal(self):
         location_id = engine.S["location_id"]
         found = engine._REAL_WORLD_JUNK[location_id][0]
@@ -94,7 +112,7 @@ class RealWorldDataTests(unittest.TestCase):
 
     def test_public_command_surface_smoke(self):
         commands = ["help", "status", "conditions", "shop", "goto", "inventory",
-                    "encyclopedia", "journal", "look colorado_headwaters",
+                    "encyclopedia", "journal", "ecosystem", "look colorado_headwaters",
                     "buy earthworm 1", "cast 3", "sell all"]
         for command in commands:
             with self.subTest(command=command):

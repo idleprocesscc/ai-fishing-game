@@ -54,6 +54,21 @@ An incorrect answer is recorded as a corrected misidentification and explains
 which field mark was unreliable. A correct answer verifies the entry. The
 system emphasizes combinations of traits rather than color or body size alone.
 
+### Observation depth and ecological relationships
+
+Repeated encounters progress from `First observation` to `Familiar` and then
+`Studied`. The second and third records award small observation bonuses. They
+also provide the evidence needed to unlock relationships through:
+
+```text
+ecosystem
+```
+
+The relationship journal connects species to flooded-forest fruit, kelp
+architecture, cold pelagic food webs, migration corridors, slow life histories,
+community conservation, and river connectivity. Locked relationships reveal no
+species answer list; the player must gather repeated observations first.
+
 ### Conservation and release
 
 Species marked `release_only` generate observation ids such as `obs_003`.
@@ -95,6 +110,7 @@ consuming the game PRNG, so identical seeds and commands remain reproducible.
 | `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
 | `encyclopedia` | Show discovery and verification status. |
 | `journal` | Show native/introduced counts, releases, and corrected mistakes. |
+| `ecosystem` | Show food-web, habitat, migration, and conservation relationships supported by observations. |
 | `identify <fish_id> [choice]` | Study and verify an observed species. |
 | `look <id>` | Read the bilingual name, Latin name, field marks, ecology, and conservation note. |
 

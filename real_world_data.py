@@ -399,15 +399,45 @@ SURFACE_JUNK = {
     "mekong_mainstem": ["一枚漂流植物种子", "一截被水磨亮的竹片", "一只旧塑料凉鞋", "一团废弃刺网线"],
 }
 
-
-def install(namespace):
-    """Replace fantasy content while preserving the mature engine mechanics."""
-    namespace["LOCATIONS"].clear(); namespace["LOCATIONS"].update(LOCATIONS)
-    namespace["FISH"].clear(); namespace["FISH"].update(FISH)
-    namespace["BAITS"].clear(); namespace["BAITS"].update(BAITS)
-    namespace["EVENTS"].clear()
-    namespace["ITEMS"].clear()
-    namespace["DIVE_EVENTS"].clear()
-    namespace["DIVE_ENCOUNTERS"][:] = []
-    namespace["_REAL_WORLD_JUNK"] = SURFACE_JUNK
-    namespace["_REAL_WORLD_CONDITIONS"] = CONDITIONS
+RELATIONSHIPS = [
+    {"id": "colorado_native_refuge", "location_id": "colorado_headwaters", "type": "competition_and_refuge",
+     "requires": ["colorado_river_cutthroat", "brown_trout"], "min_count": 1,
+     "title_zh": "原生源流与引入种", "title_en": "Native headwaters and introduced trout",
+     "fact_zh": "寒冷且连通性受控的源流可成为原生割喉鳟的避难所；引入鳟类会带来竞争、捕食或杂交等不同压力，具体影响取决于物种与水系。"},
+    {"id": "hokkaido_migration_corridor", "location_id": "hokkaido_river", "type": "migration",
+     "requires": ["cherry_salmon", "white_spotted_char"], "min_count": 1,
+     "title_zh": "森林河川的海陆通道", "title_en": "Forest river as a sea-land corridor",
+     "fact_zh": "河岸林、深潭、浅滩和河口不是孤立地点；它们共同决定洄游型与河川残留型鱼类能否完成不同生活史。"},
+    {"id": "hokkaido_kelp_edge", "location_id": "hokkaido_rocky_coast", "type": "habitat_structure",
+     "requires": ["arabesque_greenling", "japanese_flounder"], "min_count": 2,
+     "title_zh": "岩缝、海藻边缘与海底伏击", "title_en": "Rock crevices, kelp edges, and benthic ambush",
+     "fact_zh": "结构复杂的岩礁海岸把藏身、产卵、伏击和开放觅食面压缩在很短的距离内，因此底质变化会重组整个小型群落。"},
+    {"id": "cape_kelp_architecture", "location_id": "cape_kelp_forest", "type": "habitat_structure",
+     "requires": ["galjoen", "hottentot_seabream"], "min_count": 2,
+     "title_zh": "巨藻不是背景", "title_en": "Kelp is architecture, not scenery",
+     "fact_zh": "巨藻林改变水流、遮蔽和附着表面；鱼类利用的是一座会随浪涌移动的立体栖息地，而不是一片静止的植物布景。"},
+    {"id": "amazon_fruit_link", "location_id": "amazon_flooded_forest", "type": "cross_ecosystem_food",
+     "requires": ["tambaqui"], "min_count": 3,
+     "title_zh": "森林结果，鱼群进食", "title_en": "Forest fruit becomes fish food",
+     "fact_zh": "洪水把树冠下的果实和种子带入水中；取食它们的鱼又移动种子与营养，使森林和河流成为同一个季节性系统。"},
+    {"id": "amazon_managed_arapaima", "location_id": "amazon_flooded_forest", "type": "community_conservation",
+     "requires": ["arapaima"], "min_count": 2,
+     "title_zh": "从浮头换气到社区计数", "title_en": "From air breathing to community counts",
+     "fact_zh": "巨骨舌鱼必须浮头换气，使有经验的社区观察者能够计数；监测、分区与守护湖泊共同构成管理，而不是把“可捕”简化为无限资源。"},
+    {"id": "baikal_pelagic_chain", "location_id": "baikal_littoral", "type": "food_web",
+     "requires": ["baikal_omul", "small_golomyanka"], "min_count": 2,
+     "title_zh": "寒冷水柱中的能量通道", "title_en": "Energy pathways in a cold water column",
+     "fact_zh": "浮游甲壳动物支撑欧姆白鲑和胎生贝湖鱼等水柱消费者，后者又是贝加尔海豹食物网的重要环节。"},
+    {"id": "baikal_slow_recovery", "location_id": "baikal_littoral", "type": "life_history",
+     "requires": ["baikal_sturgeon"], "min_count": 2,
+     "title_zh": "长寿不等于恢复快", "title_en": "Long-lived does not mean fast recovery",
+     "fact_zh": "贝加尔鲟成熟缓慢且依赖支流繁殖；当繁殖成鱼或幼鱼持续损失时，种群无法用短期高繁殖迅速补回。"},
+    {"id": "mekong_connected_river", "location_id": "mekong_mainstem", "type": "migration_conservation",
+     "requires": ["mekong_giant_catfish", "giant_barb"], "min_count": 2,
+     "title_zh": "巨鱼需要一条完整的河", "title_en": "Giant fish need a connected river",
+     "fact_zh": "大型洄游鱼把深槽、主河道、支流与繁殖地连成一条生命史路线；保护单个点位无法替代整条通道的连通性。"},
+    {"id": "mekong_small_fish_scale", "location_id": "mekong_mainstem", "type": "biomass_flow",
+     "requires": ["siamese_mud_carp", "striped_catfish"], "min_count": 3,
+     "title_zh": "小鱼也能移动巨量生物量", "title_en": "Small fish can move enormous biomass",
+     "fact_zh": "个体尺寸很小的洄游鱼能以庞大鱼群移动营养与能量；生态重要性不能只按单条鱼的重量排序。"},
+]

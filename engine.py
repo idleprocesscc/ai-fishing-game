@@ -13,6 +13,7 @@ from real_world_data import BAITS as _BAITS
 from real_world_data import CONDITIONS as _CONDITIONS
 from real_world_data import FISH as _FISH
 from real_world_data import LOCATIONS as _LOCATIONS
+from real_world_data import RELATIONSHIPS as _RELATIONSHIPS
 from real_world_data import SURFACE_JUNK as _SURFACE_JUNK
 
 
@@ -58,6 +59,7 @@ FISH = copy.deepcopy(_FISH)
 BAITS = copy.deepcopy(_BAITS)
 _REAL_WORLD_JUNK = copy.deepcopy(_SURFACE_JUNK)
 _REAL_WORLD_CONDITIONS = copy.deepcopy(_CONDITIONS)
+RELATIONSHIPS = copy.deepcopy(_RELATIONSHIPS)
 
 _SAVE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fishing_save.json")
 _IO_WARN = ""
@@ -234,6 +236,10 @@ def _record(fish, size, value):
         S["catch_inventory"].append({"instance_id": instance, "fish_id": fish["id"], "size": size, "value": value})
     if first:
         S["points"] += RARITY[fish["rarity"]]["bonus"]
+    elif entry["count"] == 2:
+        S["points"] += 5
+    elif entry["count"] == 3:
+        S["points"] += 10
     return instance, first
 
 
@@ -257,7 +263,22 @@ def _format_catch(fish, size, value, instance, first):
         lines.append("记录号 %s，暂存鱼篓。" % instance)
     if first and fish.get("quiz"):
         lines.append("🔎 待鉴定：identify %s" % fish["id"])
+    count = S["encyclopedia"][fish["id"]]["count"]
+    if count == 2:
+        lines.append("◉ 观察等级提升：熟悉 +5 pts")
+    elif count == 3:
+        lines.append("◎ 观察等级提升：深入观察 +10 pts；新的生态关系可能已经解锁。")
     return "\n".join(lines)
+
+
+def _observation_level(entry):
+    if entry.get("identification") == "pending":
+        return "待鉴定", "Pending ID"
+    if entry.get("count", 0) >= 3:
+        return "深入观察", "Studied"
+    if entry.get("count", 0) >= 2:
+        return "熟悉", "Familiar"
+    return "初见", "First observation"
 
 
 def _cast_step(rng, bait_id):
@@ -426,7 +447,8 @@ def _c_encyclopedia():
             continue
         entry = S["encyclopedia"][fish["id"]]
         mark = "✔" if entry.get("identification", "verified") == "verified" else "?"
-        lines.append("%s %s / %s · %d次 · 最大%scm" % (mark, fish["name_zh"], fish["name_en"], entry["count"], entry["max_size"]))
+        level_zh, _ = _observation_level(entry)
+        lines.append("%s %s / %s · %s · %d次 · 最大%scm" % (mark, fish["name_zh"], fish["name_en"], level_zh, entry["count"], entry["max_size"]))
     if len(lines) == 1:
         lines.append("还没有物种观察。")
     return "\n".join(lines)
@@ -438,17 +460,39 @@ def _c_journal():
     introduced = sum(f.get("native_status") == "introduced" for f in seen)
     corrections = sum(S["encyclopedia"][f["id"]].get("misidentifications", 0) for f in seen)
     pending = sum(S["encyclopedia"][f["id"]].get("identification") == "pending" for f in seen)
+    studied = sum(_observation_level(S["encyclopedia"][f["id"]])[0] == "深入观察" for f in seen)
     observations = sorted(S.get("field_observations", {}).values(), key=lambda item: (-item["count"], item["name"]))
     object_lines = ""
     if observations:
         object_lines = "\n[非鱼类发现]\n" + "\n".join("%s %s · %s ×%d" % (
             "🧹" if item.get("human_debris") else "◦", LOCATIONS[item["location_id"]]["name"], item["name"], item["count"]
         ) for item in observations[:12])
-    return (("[观察日志] 物种%d/%d · 原生%d · 引入%d · 待鉴定%d\n"
+    return (("[观察日志] 物种%d/%d · 原生%d · 引入%d · 待鉴定%d · 深入观察%d\n"
             "保护放流%d · 纠错%d · 空杆%d · 清理废弃物%d\n"
             "用 identify <fish_id> 学习鉴别，用 look <fish_id> 阅读科普。") % (
-                len(seen), len(FISH), native, introduced, pending, S["stats"]["released"],
+                len(seen), len(FISH), native, introduced, pending, studied, S["stats"]["released"],
                 corrections, S["stats"]["empty_casts"], S["stats"]["debris_removed"])) + object_lines
+
+
+def _relationship_unlocked(relationship):
+    minimum = relationship.get("min_count", 1)
+    return all(S["encyclopedia"].get(fid, {}).get("count", 0) >= minimum for fid in relationship["requires"])
+
+
+def _c_ecosystem():
+    unlocked = [rel for rel in RELATIONSHIPS if _relationship_unlocked(rel)]
+    lines = ["[生态关系网] %d/%d 已解锁" % (len(unlocked), len(RELATIONSHIPS))]
+    if not unlocked:
+        lines.append("继续在同一生态系统中重复观察不同物种，关系证据才会浮现。")
+    for rel in unlocked:
+        loc = LOCATIONS[rel["location_id"]]
+        lines.append("\n◆ %s / %s" % (rel["title_zh"], rel["title_en"]))
+        lines.append("  %s · %s" % (loc["name_zh"], rel["type"]))
+        lines.append("  " + rel["fact_zh"])
+    locked = len(RELATIONSHIPS) - len(unlocked)
+    if locked:
+        lines.append("\n另有%d条关系仍缺少重复观察证据。" % locked)
+    return "\n".join(lines)
 
 
 def _c_identify(fish_id, choice=None):
@@ -494,9 +538,10 @@ def _c_look(query):
         if fish["id"] not in S["encyclopedia"]:
             return "??? · 尚未观察到该物种。"
         origin = {"native": "原生", "introduced": "引入", "endemic": "特有"}.get(fish.get("native_status"), fish.get("native_status", "未记录"))
-        return ("%s / %s (%s)\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\n体长 %s-%scm") % (
-            fish["name_zh"], fish["name_en"], fish["latin"], fish["science_fact_zh"],
-            fish["identification_zh"], origin, fish["conservation"],
+        level_zh, level_en = _observation_level(S["encyclopedia"][fish["id"]])
+        return ("%s / %s (%s)\n观察等级：%s / %s\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\n体长 %s-%scm") % (
+            fish["name_zh"], fish["name_en"], fish["latin"], level_zh, level_en,
+            fish["science_fact_zh"], fish["identification_zh"], origin, fish["conservation"],
             " · 仅观察放流" if fish.get("release_only") else "", fish["size_min"], fish["size_max"])
     loc = _find(LOCATIONS, query)
     if loc:
@@ -516,6 +561,7 @@ _HELP = """🌍🎣 World Waters Field Journal
   goto | goto <location_id>      世界水域与旅行解锁
   inventory | sell ...           管理可留存渔获
   encyclopedia | journal         图鉴与观察日志
+  ecosystem                      已解锁的食物、栖息地、洄游与保护关系
   identify <fish_id> [choice]    纠错鉴定
   look <id_or_name>              阅读物种、地点或饵的科普记录
 可用分号批量执行最多8条命令。空杆、自然物与废弃物同样是调查结果。"""
@@ -552,6 +598,8 @@ def _run_one(line):
             return _c_encyclopedia()
         if command in ("journal", "j"):
             return _c_journal()
+        if command in ("ecosystem", "eco"):
+            return _c_ecosystem()
         if command in ("identify", "id"):
             choice = int(args[1]) if len(args) > 1 and args[1].isdigit() else None
             return _c_identify(args[0] if args else "", choice)

@@ -13,6 +13,8 @@
 - Added automatic photo-release rules for protected/research-only wildlife.
 - Added corrective identification exercises and persistent misidentification
   counts rather than treating the first guess as automatically correct.
+- Added three observation-depth levels and an evidence-gated ecological
+  relationship journal spanning food webs, habitat, migration, and conservation.
 - Added deterministic local water conditions that alter activity weighting
   without consuming the game PRNG.
 - Added a simulated dawn/day/dusk/night cycle with behavior-specific weighting;
