@@ -21,7 +21,7 @@ real-world field-journal system.
 
 ## Current world
 
-The first field edition contains 9 habitats and 26 real species:
+The expanded field edition contains **17 habitats and 100 real fish species**:
 
 - Colorado Rocky Mountain headwaters and foothills reservoir
 - Hokkaido forest river and rocky coast
@@ -29,6 +29,14 @@ The first field edition contains 9 habitats and 26 real species:
 - Amazon flooded forest
 - Lake Baikal littoral
 - Mekong mainstem
+- Colorado River canyon
+- Florida mangrove estuary
+- Norwegian fjord
+- Lake Superior shore
+- Murray–Darling River
+- Aotearoa New Zealand South Island river
+- Chesapeake Bay
+- Monterey Bay kelp forest
 
 Every location has its own debris/natural-object pool and deterministic water
 conditions. Snowmelt, clear low water, flood pulses, tributary plumes,
@@ -160,6 +168,7 @@ AI play because it saves context while stopping at meaningful observations.
 | --- | --- |
 | `engine.py` | Deterministic command engine and field-journal mechanics. |
 | `real_world_data.py` | Readable bilingual habitats, species, objects, water conditions, and quizzes. |
+| `world_expansion.py` | Regional second-edition pack that grows the world to 100 species without bloating the core table. |
 | `fishing.py` | Generated single-file blind-play build for an AI player. |
 | `build_blind.py` | Bundles the engine and data module into `fishing.py`. |
 | `tool-schema.json` | Structured tool schema for an MCP/tool wrapper. |

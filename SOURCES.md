@@ -15,6 +15,45 @@ must never present itself as current legal advice.
 - [Colorado Parks and Wildlife — Fish Species Information](https://cpw.state.co.us/fish-species-information-list?page=1)
 - [Colorado Parks and Wildlife — Aquatic Research](https://cpw.state.co.us/aquatic-research)
 
+## Florida Everglades
+
+- [U.S. National Park Service — Everglades Mangroves](https://www.nps.gov/ever/learn/nature/mangroves.htm)
+- [U.S. National Park Service — Everglades fish observations](https://irma.nps.gov/DataStore/DownloadFile/662061)
+
+## Norwegian fjords
+
+- [Norwegian Institute of Marine Research — Atlantic halibut](https://www.hi.no/en/hi/temasider/species/halibut)
+- [Norwegian Institute of Marine Research — Haddock](https://www.hi.no/en/hi/temasider/arter/hyse)
+- [Norwegian Institute of Marine Research — Atlantic herring](https://www.hi.no/en/hi/temasider/species/herring)
+- [Norwegian Institute of Marine Research — Anglerfish](https://www.hi.no/en/hi/temasider/species/anglerfish)
+
+## North American Great Lakes
+
+- [Wisconsin DNR — Wisconsin fishes](https://dnr.wisconsin.gov/topic/Fishing/species)
+- [Wisconsin DNR — Lake Superior management and fisheries](https://dnr.wisconsin.gov/topic/fishing/lakesuperior/managementreports)
+
+## Murray–Darling Basin
+
+- [NSW Environment and Heritage — Fish in wetlands](https://www.environment.nsw.gov.au/topics/water/wetlands/plants-and-animals-in-wetlands/fish)
+- [NSW Environment and Heritage — Native fish of the Darling River](https://www.environment.nsw.gov.au/publications/native-fish-of-the-darling-river)
+
+## Aotearoa New Zealand
+
+- [Department of Conservation — Native freshwater fish](https://www.doc.govt.nz/nature/native-animals/freshwater-fish/)
+- [Department of Conservation — Freshwater eels/tuna](https://www.doc.govt.nz/nature/native-animals/freshwater-fish/eels/)
+- [Department of Conservation — Native fish habitat requirements](https://www.doc.govt.nz/about-us/science-publications/conservation-publications/land-and-freshwater/freshwater/habitat-requirements-of-native-freshwater-fish-in-aotearoa-new-zealand/)
+
+## Chesapeake Bay
+
+- [NOAA Fisheries — Summer flounder habitat](https://www.fisheries.noaa.gov/species/summer-flounder/seafood)
+- [NOAA Fisheries — Chesapeake habitat and climate research](https://www.fisheries.noaa.gov/feature-story/how-will-changes-habitat-affect-fish-and-near-chesapeake-bay)
+
+## Monterey Bay and California Current
+
+- [California Department of Fish and Wildlife — Managed groundfish species](https://wildlife.ca.gov/Conservation/Marine/Federal-Groundfish)
+- [California Department of Fish and Wildlife — Marine species portal](https://marinespecies.wildlife.ca.gov/)
+- [NOAA Monterey Bay National Marine Sanctuary — Kelp forests](https://montereybay.noaa.gov/science/characterization/kelp-forests.html)
+
 ## Hokkaido
 
 - [Hokkaido Government — Fish Encyclopedia](https://www.pref.hokkaido.lg.jp/sr/gid/sr_ske_index.html)

@@ -21,6 +21,22 @@ class RealWorldDataTests(unittest.TestCase):
         for location_id in required:
             self.assertTrue(any(location_id in fish["locations"] for fish in engine.FISH.values()))
 
+    def test_hundred_species_world_has_seventeen_playable_locations(self):
+        self.assertEqual(len(engine.FISH), 100)
+        self.assertEqual(len(engine.LOCATIONS), 17)
+        ten_species_regions = {
+            "florida_mangrove_estuary", "norway_fjord", "lake_superior_shore",
+            "murray_darling_river", "new_zealand_south_island",
+            "chesapeake_bay", "monterey_kelp_forest"}
+        for location_id in ten_species_regions:
+            local = [fish for fish in engine.FISH.values() if location_id in fish["locations"]]
+            self.assertEqual(len(local), 10, location_id)
+        for location_id in engine.LOCATIONS:
+            for season_id in engine.SEASONS:
+                eligible = [fish for fish in engine.FISH.values()
+                            if engine._eligible(fish, location_id, season_id)]
+                self.assertTrue(eligible, (location_id, season_id))
+
     def test_every_species_has_canonical_science_fields(self):
         for fish_id, fish in engine.FISH.items():
             with self.subTest(fish=fish_id):

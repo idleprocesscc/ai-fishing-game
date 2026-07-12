@@ -635,3 +635,21 @@ STORIES = [
      "text_zh": "船经过深潭时，故事要求每个人只说一次自己的名字；第二次若从水面传来，就当作水流与船壳的回声，不回答，也不靠近。",
      "text_en": "Passing a deep pool, the story permits each traveler to say their name once. If it returns from the water, treat it as current and hull echo: do not answer, and do not approach."},
 ]
+
+# The second field edition lives in its own module so the hundred-species
+# encyclopedia remains reviewable by region instead of becoming one giant table.
+from world_expansion import CONDITIONS as _EXP_CONDITIONS
+from world_expansion import EPISODES as _EXP_EPISODES
+from world_expansion import FISH as _EXP_FISH
+from world_expansion import JUNK as _EXP_JUNK
+from world_expansion import LOCATIONS as _EXP_LOCATIONS
+from world_expansion import RELATIONSHIPS as _EXP_RELATIONSHIPS
+from world_expansion import WILDLIFE as _EXP_WILDLIFE
+
+LOCATIONS.update(_EXP_LOCATIONS)
+FISH.update(_EXP_FISH)
+CONDITIONS.update(_EXP_CONDITIONS)
+EPISODES.update(_EXP_EPISODES)
+SURFACE_JUNK.update(_EXP_JUNK)
+WILDLIFE.update(_EXP_WILDLIFE)
+RELATIONSHIPS.extend(_EXP_RELATIONSHIPS)

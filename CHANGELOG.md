@@ -38,6 +38,13 @@
 - Rebuilt the readable engine so no legacy fantasy tables remain embedded.
 - Added formal data-integrity, migration, release, correction, and determinism
   tests.
+- Expanded the encyclopedia from 26 to 100 real fish species and the map from 9
+  to 17 habitats through a separately maintainable regional data module.
+- Added Colorado River canyon, Florida mangrove estuary, Norwegian fjord, Lake
+  Superior, Murray–Darling, Aotearoa South Island, Chesapeake Bay, and Monterey
+  Bay kelp-forest routes.
+- Added eight new corrective identification exercises for easily confused
+  catfish, gadoids, pike, eels, drums, and flatfishes.
 
 The game remains reproducible within a version: identical seed and command
 sequence produce identical output.
