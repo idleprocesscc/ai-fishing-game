@@ -2034,6 +2034,12 @@ def _apply_english_display():
             opt.setdefault("outcome", {})["text"] = "You commit to the choice, spend the required air, and return with whatever the site yields."
 
 _apply_english_display()
+
+# Replace the original fantasy tables with our bilingual real-world field pack.
+# The engine remains deterministic; only canonical content and field-journal
+# metadata change here.
+from real_world_data import install as _install_real_world
+_install_real_world(globals())
 _DIVE_ENC_BY_ID = {e["id"]: e for e in DIVE_ENCOUNTERS}
 _DIVE_BRANCH_IDS = {e["id"] for e in DIVE_ENCOUNTERS if e.get("branch")}   # Major ruin encounters pause the expedition for a choice.
 
@@ -2045,8 +2051,8 @@ def _new_state(seed=_DEFAULT_SEED):
     seed = int(seed) & 0xFFFFFFFF
     return {"version": 1, "seed": seed, "rngState": seed, "rngCalls": 0, "turn": 0,
             "season_id": "spring", "season_length": 20, "season_started_turn": 0,
-            "points": 200, "location_id": "moonlit_pond", "unlocked_locations": ["moonlit_pond", "reed_river"],
-            "bait_inventory": {"basic_worm": 5}, "catch_inventory": [], "items": {}, "pending_chests": [], "seen_letters": {},
+            "points": 200, "location_id": "colorado_headwaters", "unlocked_locations": ["colorado_headwaters"],
+            "bait_inventory": {"earthworm": 8}, "catch_inventory": [], "items": {}, "pending_chests": [], "seen_letters": {},
             "encyclopedia": {}, "stats": {"total_casts": 0, "total_caught": 0, "total_chests": 0, "total_dives": 0}, "local_dry": 0,
             "fever": 0, "free_bait": 0,    # Active luck-event buffs.
             "oxygen": 0, "oxygen_ever": False,   # Oxygen tanks are dive consumables bought in the shop.
@@ -2075,9 +2081,9 @@ def _load():
     S.setdefault("map_fragments", {})
     if S.get("location_id") not in LOCATIONS:
         old_loc = S.get("location_id", "(missing)")
-        S["location_id"] = "moonlit_pond"
-        _IO_WARN = (_IO_WARN + "\n" if _IO_WARN else "") + "⚠️ Save referenced missing location '%s'; moved you to Moonlit Pond and kept the rest of the save." % old_loc
-    for starter in ("moonlit_pond", "reed_river"):
+        S["location_id"] = "colorado_headwaters"
+        _IO_WARN = (_IO_WARN + "\n" if _IO_WARN else "") + "⚠️ Save referenced old-world location '%s'; moved you to Colorado Rocky Mountain Headwaters and kept compatible progress." % old_loc
+    for starter in ("colorado_headwaters",):
         if starter not in S.setdefault("unlocked_locations", []):
             S["unlocked_locations"].append(starter)
     if "dive_unlocked" not in S:   # Underwater fish: dive-only catches, including capture feel text.
@@ -2244,7 +2250,7 @@ def _c_open(uid):
     S["rngState"] = rng.state; S["rngCalls"] = rng.calls
     return "🗝 Opened %s! %s\n%s" % (ev["name"], ("Gained " + ", ".join(parts)) if parts else "It was empty.", _footer())
 
-_JUNK = ["a waterlogged boot", "half a rusty can", "a knot of old fishing line", "a water-smoothed shard of pottery", "a stray plastic duck"]
+_JUNK = ["一团废弃鱼线", "一只进水的旧靴", "一片水磨玻璃", "一截浮木", "一个褪色塑料瓶盖"]
 def _rar(k): return RARITY[k]["label"] + " " + RARITY[k]["tag"]
 def _sloc(): return LOCATIONS[S["location_id"]]["name"] + " · " + SEASONS[S["season_id"]]["name"]
 def _footer(): return "Points %d | %s | Turn %d | Encyclopedia %d/%d" % (S["points"], _sloc(), S["turn"], len(S["encyclopedia"]), len(FISH))
@@ -2434,7 +2440,12 @@ def _c_look(oid):
         latin = (" (%s)" % f["latin"]) if f.get("latin") else ""; rumor = ("\n📜 Rumor: %s" % f["rumor"]) if f.get("rumor") else ""
         cf = ("\n🫧 Feel: %s" % f["capture_feel"]) if f.get("capture_feel") else ""
         diveflag = " (🤿 dive-only; cannot be caught from the surface)" if f.get("dive") else ""
-        return "%s%s (%s)%s\n%s%s%s\nSize %s-%s%s | Base value %s | Found in: %s · %s" % (f["name"], latin, _rar(f["rarity"]), diveflag, f["description"], rumor, cf, f["size_min"], f["size_max"], f["size_unit"], f["base_value"], locs, seas)
+        origin = {"native": "原生", "introduced": "引入", "endemic": "特有"}.get(f.get("native_status"), f.get("native_status", "未记录"))
+        release = " · 📷 仅观察放流" if f.get("release_only") else ""
+        science = "\n🔬 科普：%s" % f.get("science_fact_zh", f["description"])
+        identify = "\n🔎 辨认：%s" % f.get("identification_zh", "暂无辨认笔记")
+        ecology = "\n🌿 身份：%s · 保护标记：%s%s" % (origin, f.get("conservation", "未评估"), release)
+        return "%s%s (%s)%s\n%s%s%s%s%s%s\n体长 %s-%s%s | 观察价值 %s | 水域：%s · %s" % (f["name"], latin, _rar(f["rarity"]), diveflag, f["description"], rumor, cf, science, identify, ecology, f["size_min"], f["size_max"], f["size_unit"], f["base_value"], locs, seas)
     l = _by_id_or_name(LOCATIONS, oid)
     if l: return "%s\n%s\nOpen seasons: %s  Unlock cost: %d pts" % (l["name"], l["description"], ", ".join(SEASONS[x]["name"] for x in l["available_seasons"]), l["unlock_cost"])
     b = _by_id_or_name(BAITS, oid)
@@ -2454,7 +2465,8 @@ def _bite_line(rng, rarity):
 def _format_catch(f, size, value, inst, first):
     u = f["size_unit"]; r = f["rarity"]; rl = RARITY[r]["label"]
     cf = ("\n🫧 " + f["capture_feel"]) if f.get("capture_feel") else ""   # Underwater fish: dive-only catches, including capture feel text.
-    flavor = f.get("description", "") + cf
+    release_note = "\n📷 完成测量与辨认后原地放流；本记录不会进入鱼篓或出售。" if f.get("release_only") else ""
+    flavor = f.get("description", "") + cf + release_note
     if r in ("legendary", "mythic"):   # Legendary and mythic catches receive full narration.
         top = "👑 --- LEGENDARY --- 👑" if r == "legendary" else "✧ ------ MYTHIC ------ ✧"
         nm = " (★first record +%d pts)" % RARITY[r]["discovery_bonus"] if first else ""
@@ -2487,7 +2499,11 @@ def _secret_hint():
 # Record catch instance, inventory, encyclopedia, and discovery rewards.
 def _record_catch(f, size, value):
     inst = "c_%03d" % (S["stats"]["total_caught"] + 1)
-    S["catch_inventory"].append({"instance_id": inst, "fish_id": f["id"], "size": size, "value": value})
+    if f.get("release_only"):
+        inst = "obs_%03d" % (S["stats"]["total_caught"] + 1)
+        S["stats"]["released"] = S["stats"].get("released", 0) + 1
+    else:
+        S["catch_inventory"].append({"instance_id": inst, "fish_id": f["id"], "size": size, "value": value})
     S["stats"]["total_caught"] += 1
     first = _upd_enc(f, size, value)
     bonus = RARITY[f["rarity"]]["discovery_bonus"] if first else 0
@@ -2503,6 +2519,22 @@ def _milestone_line(f, first):
         return "\n🎉 %s tier complete! (%d species recorded)" % (RARITY[f["rarity"]]["label"], len(tier))
     if got % 10 == 0: return "\n🎉 Encyclopedia milestone: %d/%d species!" % (got, total)
     return ""
+
+def _c_journal():
+    """Render ecological observations separately from sale inventory."""
+    seen = [f for f in FISH.values() if f["id"] in S["encyclopedia"]]
+    if not seen:
+        return "[观察日志] 还没有物种记录。第一竿不一定有鱼，但每次观察都会让地图更清楚。"
+    native = sum(f.get("native_status") == "native" for f in seen)
+    introduced = sum(f.get("native_status") == "introduced" for f in seen)
+    released = S.get("stats", {}).get("released", 0)
+    lines = ["[观察日志] %d/%d 种 | 原生 %d · 引入 %d · 保护放流 %d 次" % (len(seen), len(FISH), native, introduced, released)]
+    for f in seen:
+        e = S["encyclopedia"][f["id"]]
+        mark = "📷" if f.get("release_only") else "✓"
+        lines.append("%s %s / %s — 观察%d次，最大%s cm" % (mark, f["name"], f.get("name_en", f["id"]), e["count"], e["max_size"]))
+    lines.append("提示：用 look <物种id> 查看辨认特征、原生身份和科普笔记。")
+    return "\n".join(lines)
 
 # Map fragments and rare full maps unlock dive sites.
 _FRAG_CHANCE = 0.15   # Extra local map-fragment chance on successful surface catches.
@@ -2630,7 +2662,8 @@ def _cast_step(rng, bait_id, mode="cast"):
         if not dive: S["local_dry"] = S.get("local_dry", 0) + 1
         if dive:
             return {"text": season_msg + "🪨 You find %s. Empty dive.%s" % (_DIVE_JUNK[rng.rint(0, len(_DIVE_JUNK) - 1)], _ambience(loc, rng)), "consumed": True, "kind": "junk", "season_changed": season_changed}
-        return {"text": season_msg + "🪣 You pull up %s. No fish this cast.%s%s" % (_JUNK[rng.rint(0, len(_JUNK) - 1)], _ambience(loc, rng), _secret_hint()), "consumed": True, "kind": "junk", "season_changed": season_changed}
+        local_junk = globals().get("_REAL_WORLD_JUNK", {}).get(S["location_id"], _JUNK)
+        return {"text": season_msg + "🪣 你拉上来%s。这一竿没有鱼，但它也属于这片水域的记录。%s%s" % (local_junk[rng.rint(0, len(local_junk) - 1)], _ambience(loc, rng), _secret_hint()), "consumed": True, "kind": "junk", "season_changed": season_changed}
     pool = [f for f in FISH.values() if _eligible(f, S["location_id"], S["season_id"]) and bool(f.get("dive")) == dive and not (dive and f.get("branch_only"))]
     if not pool:
         if not dive: S["local_dry"] = S.get("local_dry", 0) + 1
@@ -2794,7 +2827,7 @@ def _c_surface():
     S["expedition"]["pending"] = None
     return "You swim upward and end the expedition.\n" + _exp_settle("manual return")
 
-_HELP = """Text Fishing Game. You are the player: buy bait, cast, catch fish by rarity odds, sell catches for points, unlock waters, and fill the encyclopedia.
+_HELP = """World Waters Field Journal. Travel through real ecosystems, fish, identify species, release protected wildlife, and build a scientific observation journal.
 Commands passed to cmd() are case-insensitive:
   cmd('status')                         Show points, location, season, bait, and progress.
   cmd('shop')                           Show bait and oxygen for sale.
@@ -2812,6 +2845,7 @@ Commands passed to cmd() are case-insensitive:
   cmd('sell <catch_id>') | cmd('sell all') | cmd('sell species <fish_id>') | cmd('sell item <item_id>')
   cmd('open <chest_uid>')                Open a pending chest.
   cmd('encyclopedia')                    Show discovered fish and collected letters.
+  cmd('journal')                         Show the ecological observation log, native status, and releases.
   cmd('look <id_or_name>')               Inspect a fish, location, bait, season, or item. Unknown fish stay hidden as ???.
   cmd('A; B; C')                         Run up to 8 commands as a batch, e.g. cmd('buy basic_worm 10; cast 10').
 Surface casts may find bottles, chests, treasures, and lucky moments. Diving finds underwater-only species and may pause at major sites for choose. Every result ends with a compact 📊 JSON status line, so you usually do not need a separate status call.
@@ -2833,7 +2867,7 @@ def _run_one(line):
     parts = line.split()
     c = parts[0].lower(); a = parts[1:]
     # During an expedition, only choices, surfacing, and read-only commands are allowed.
-    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "inventory", "inv", "i", "encyclopedia", "enc", "e", "look", "l", "help", "h"):
+    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "inventory", "inv", "i", "encyclopedia", "enc", "e", "journal", "j", "look", "l", "help", "h"):
         return "You are still underwater. Use choose <number> for the current site, or surface to return."
     try:
         if c in ("help", "h"): return _HELP
@@ -2862,6 +2896,7 @@ def _run_one(line):
         elif c in ("inventory", "inv", "i"): return _c_inv()
         elif c == "sell": return _c_sell(" ".join(a))
         elif c in ("encyclopedia", "enc", "e"): return _c_enc()
+        elif c in ("journal", "j"): return _c_journal()
         elif c in ("look", "l"): return _c_look(a[0] if a else "")
         else: return "Unknown command '%s'. Use cmd('help') for the command list." % c
     except Exception as e:

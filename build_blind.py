@@ -39,7 +39,17 @@ API: fishing.cmd("command") returns text; fishing.new_game(seed) starts over.
 
 def build():
     engine_src = (HERE / "engine.py").read_text(encoding="utf-8")
-    b64 = base64.b64encode(engine_src.encode("utf-8")).decode("ascii")
+    data_src = (HERE / "real_world_data.py").read_text(encoding="utf-8")
+    # Install the content module in memory so the blind build remains a single
+    # distributable file even though readable development uses two files.
+    bootstrap = (
+        "import sys, types\n"
+        "_rw = types.ModuleType('real_world_data')\n"
+        "exec(" + repr(data_src) + ", _rw.__dict__)\n"
+        "sys.modules['real_world_data'] = _rw\n"
+    )
+    bundled_src = bootstrap + engine_src
+    b64 = base64.b64encode(bundled_src.encode("utf-8")).decode("ascii")
     chunks = "\n".join('    "%s"' % b64[i:i + 76] for i in range(0, len(b64), 76))
     out = (
         HEADER

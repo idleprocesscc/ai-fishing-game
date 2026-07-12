@@ -1,12 +1,12 @@
 {
   "name": "play_fishing",
-  "description": "A deterministic text fishing game where the AI is the player. Buy bait, cast, catch fish by rarity odds, sell catches and treasures for points, unlock waters, fill the encyclopedia, buy oxygen, and dive for underwater-only fish. Actions: status, shop, buy, cast, dive, choose, surface, goto, inventory, sell, open, encyclopedia, look, batch. During a paused dive expedition, use choose/surface or read-only actions. Prefer batch casts with times and stop_on instead of one cast per message. Every result ends with a compact 📊 status JSON line.",
+  "description": "A deterministic real-world fishing and ecology field journal. Travel through real habitats, identify native and introduced species, automatically release protected wildlife, record scientific observations, and encounter location-specific debris or empty casts. Actions: status, shop, buy, cast, goto, inventory, sell, encyclopedia, journal, look, batch. Prefer batch casts with times and stop_on instead of one cast per message. Every result ends with a compact 📊 status JSON line.",
   "parameters": {
     "type": "object",
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["status", "shop", "buy", "cast", "dive", "choose", "surface", "goto", "inventory", "sell", "open", "encyclopedia", "look", "batch"],
+        "enum": ["status", "shop", "buy", "cast", "dive", "choose", "surface", "goto", "inventory", "sell", "open", "encyclopedia", "journal", "look", "batch"],
         "description": "Action to perform. dive starts an expedition after buying oxygen; choose resolves a paused major underwater site; surface ends the expedition."
       },
       "choice": {
