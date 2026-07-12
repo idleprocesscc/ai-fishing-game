@@ -78,6 +78,9 @@ def _new_state(seed=_DEFAULT_SEED):
         "unlocked_locations": ["colorado_headwaters"],
         "bait_inventory": {"earthworm": 8}, "catch_inventory": [],
         "encyclopedia": {}, "field_observations": {}, "legacy_archive_count": 0,
+        "location_stats": {"colorado_headwaters": {"first_visit_turn": 0, "visits": 1,
+            "casts": 0, "fish": 0, "empty": 0, "objects": 0, "wildlife": 0,
+            "cleanup": 0, "species_seen": [], "wildlife_seen": []}},
         "stats": {"total_casts": 0, "total_caught": 0, "released": 0,
                   "empty_casts": 0, "debris_removed": 0, "wildlife_observations": 0},
     }
@@ -169,6 +172,14 @@ def _current_condition(location_id=None):
     return pool[index]
 
 
+def _location_stat(location_id=None):
+    location_id = location_id or S["location_id"]
+    return S["location_stats"].setdefault(location_id, {
+        "first_visit_turn": S["turn"], "visits": 0, "casts": 0, "fish": 0,
+        "empty": 0, "objects": 0, "wildlife": 0, "cleanup": 0,
+        "species_seen": [], "wildlife_seen": []})
+
+
 def _current_time():
     """Eight-action field day: each phase lasts two actions."""
     phases = [
@@ -241,13 +252,24 @@ def _record(fish, size, value):
             "discovered": True, "first_caught_turn": S["turn"], "count": 0,
             "max_size": 0, "total_value_earned": 0,
             "identification": "pending" if fish.get("quiz") else "verified",
-            "misidentifications": 0,
+            "misidentifications": 0, "first_size": size, "min_size": size,
+            "locations_seen": [], "times_seen": [],
         }
     entry = S["encyclopedia"][fish["id"]]
     entry["count"] += 1
+    entry.setdefault("first_size", size)
+    entry["min_size"] = min(entry.get("min_size", size), size)
     entry["max_size"] = max(entry["max_size"], size)
+    if S["location_id"] not in entry.setdefault("locations_seen", []):
+        entry["locations_seen"].append(S["location_id"])
+    time_id = _current_time()["id"]
+    if time_id not in entry.setdefault("times_seen", []):
+        entry["times_seen"].append(time_id)
     entry["total_value_earned"] += value
     S["stats"]["total_caught"] += 1
+    local = _location_stat(); local["fish"] += 1
+    if fish["id"] not in local["species_seen"]:
+        local["species_seen"].append(fish["id"])
     if fish.get("release_only"):
         instance = "obs_%03d" % S["stats"]["total_caught"]
         S["stats"]["released"] += 1
@@ -310,12 +332,14 @@ def _cast_step(rng, bait_id):
     S["bait_inventory"][bait_id] -= 1
     S["turn"] += 1
     S["stats"]["total_casts"] += 1
+    _location_stat()["casts"] += 1
     season_line = _advance_season()
     loc = LOCATIONS[S["location_id"]]
 
     # A real cast can be quiet even when target species are present.
     if rng.random() < 0.10:
         S["stats"]["empty_casts"] += 1
+        _location_stat()["empty"] += 1
         return {"kind": "empty", "consumed": True,
                 "text": season_line + _bi("〰 浮漂没有形成可靠咬口。空杆也是水况记录。", "〰 The float shows no reliable bite. An empty cast is still a water observation.")}
     wildlife_pool = [item for item in WILDLIFE.values()
@@ -329,6 +353,9 @@ def _cast_step(rng, bait_id):
             "category": "wildlife", "count": 0, "human_debris": False})
         note["count"] += 1
         S["stats"]["wildlife_observations"] += 1
+        local = _location_stat(); local["wildlife"] += 1
+        if observed["id"] not in local["wildlife_seen"]:
+            local["wildlife_seen"].append(observed["id"])
         return {"kind": "wildlife", "consumed": True,
                 "text": season_line + (_bi("🔭 野外观察：%s / %s\n%s\n只记录，不接近、不投喂、不捕捉。",
                     "🔭 Wildlife observation: %s\n%s\nRecord only: do not approach, feed, or capture.") % (
@@ -341,6 +368,8 @@ def _cast_step(rng, bait_id):
         human_debris = any(word in found for word in ("废", "塑料", "鱼线", "渔网", "凉鞋", "铝罐", "船绳"))
         if human_debris:
             S["stats"]["debris_removed"] += 1
+            _location_stat()["cleanup"] += 1
+        _location_stat()["objects"] += 1
         key = "%s|%s" % (S["location_id"], found)
         note = S["field_observations"].setdefault(key, {"location_id": S["location_id"], "name": found, "count": 0, "human_debris": human_debris})
         note["count"] += 1
@@ -353,6 +382,7 @@ def _cast_step(rng, bait_id):
     pool = [f for f in FISH.values() if _eligible(f, S["location_id"], S["season_id"])]
     if not pool:
         S["stats"]["empty_casts"] += 1
+        _location_stat()["empty"] += 1
         return {"kind": "empty", "consumed": True, "text": season_line + _bi("〰 当前季节没有适合这种调查方式的目标物种。", "〰 No target species is available for this survey method in the current season.")}
     fish = _weighted_pick(rng, pool, [_weight(f, bait_id) for f in pool])
     size = _roll_size(rng, fish)
@@ -454,8 +484,28 @@ def _c_goto(location_id=None):
         S["points"] -= loc["unlock_cost"]
         S["unlocked_locations"].append(location_id)
     S["location_id"] = location_id
+    local = _location_stat(location_id)
+    local["visits"] += 1
     return _bi("抵达%s / %s。\n%s" % (loc["name_zh"], loc["name_en"], loc["description_zh"]),
                "Arrived at %s.\n%s" % (loc["name_en"], loc["description_en"]))
+
+
+def _c_passport():
+    visited = [(lid, data) for lid, data in S.get("location_stats", {}).items() if lid in LOCATIONS and data.get("visits", 0) > 0]
+    lines = [_bi("[世界水域护照] %d/%d枚地点章", "[World Waters Passport] %d/%d location stamps") % (len(visited), len(LOCATIONS))]
+    for location_id, data in visited:
+        loc = LOCATIONS[location_id]
+        if _is_en():
+            lines.append("\n◉ %s · first turn %d · visits %d" % (loc["name_en"], data["first_visit_turn"], data["visits"]))
+            lines.append("  casts %d · species %d · wildlife %d · empty %d · objects %d · cleanup %d" % (
+                data["casts"], len(data["species_seen"]), len(data["wildlife_seen"]), data["empty"], data["objects"], data["cleanup"]))
+        else:
+            lines.append("\n◉ %s / %s · 首访第%d回合 · 到访%d次" % (loc["name_zh"], loc["name_en"], data["first_visit_turn"], data["visits"]))
+            lines.append("  抛竿%d · 物种%d · 野生动物%d · 空杆%d · 物件%d · 清理%d" % (
+                data["casts"], len(data["species_seen"]), len(data["wildlife_seen"]), data["empty"], data["objects"], data["cleanup"]))
+    if len(visited) < len(LOCATIONS):
+        lines.append(_bi("\n尚有%d片水域没有盖章。", "\n%d water(s) remain unstamped.") % (len(LOCATIONS) - len(visited)))
+    return "\n".join(lines)
 
 
 def _c_inventory():
@@ -598,12 +648,18 @@ def _c_look(query):
         origin = origins.get(fish.get("native_status"), fish.get("native_status", _bi("未记录", "unrecorded")))
         level_zh, level_en = _observation_level(S["encyclopedia"][fish["id"]])
         if _is_en():
-            return ("%s (%s)\nObservation level: %s\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\nLength %s-%scm") % (
+            return ("%s (%s)\nObservation level: %s\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\nSpecies range %s-%scm\nYour records: first %scm · min %scm · max %scm · places %d · day phases %d") % (
                 fish["name_en"], fish["latin"], level_en, fish["science_fact_en"], fish["identification_en"], origin,
-                fish["conservation"], " · observe and release only" if fish.get("release_only") else "", fish["size_min"], fish["size_max"])
-        return ("%s / %s (%s)\n观察等级：%s / %s\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\n体长 %s-%scm") % (
+                fish["conservation"], " · observe and release only" if fish.get("release_only") else "", fish["size_min"], fish["size_max"],
+                S["encyclopedia"][fish["id"]].get("first_size", S["encyclopedia"][fish["id"]]["max_size"]),
+                S["encyclopedia"][fish["id"]].get("min_size", S["encyclopedia"][fish["id"]]["max_size"]), S["encyclopedia"][fish["id"]]["max_size"],
+                len(S["encyclopedia"][fish["id"]].get("locations_seen", [])), len(S["encyclopedia"][fish["id"]].get("times_seen", [])))
+        return ("%s / %s (%s)\n观察等级：%s / %s\n🔬 %s\n🔎 %s\n🌿 %s · %s%s\n物种体长 %s-%scm\n你的记录：首次%scm · 最小%scm · 最大%scm · 地点%d · 时段%d") % (
             fish["name_zh"], fish["name_en"], fish["latin"], level_zh, level_en, fish["science_fact_zh"], fish["identification_zh"], origin,
-            fish["conservation"], " · 仅观察放流" if fish.get("release_only") else "", fish["size_min"], fish["size_max"])
+            fish["conservation"], " · 仅观察放流" if fish.get("release_only") else "", fish["size_min"], fish["size_max"],
+            S["encyclopedia"][fish["id"]].get("first_size", S["encyclopedia"][fish["id"]]["max_size"]),
+            S["encyclopedia"][fish["id"]].get("min_size", S["encyclopedia"][fish["id"]]["max_size"]), S["encyclopedia"][fish["id"]]["max_size"],
+            len(S["encyclopedia"][fish["id"]].get("locations_seen", [])), len(S["encyclopedia"][fish["id"]].get("times_seen", [])))
     loc = _find(LOCATIONS, query)
     if loc:
         return _bi("%s / %s\n%s\n生境：%s" % (loc["name_zh"], loc["name_en"], loc["description_zh"], loc["biome"]),
@@ -629,6 +685,7 @@ _HELP_ZH = """🌍🎣 World Waters Field Journal
   shop | buy <bait_id> [qty]     调查补给
   cast [bait_id] [N] [stop=...]  抛竿1-20次；stop=new,rare,event
   goto | goto <location_id>      世界水域与旅行解锁
+  passport                       地点章、首访与各水域调查统计
   inventory | sell ...           管理可留存渔获
   encyclopedia | journal         图鉴与观察日志
   ecosystem                      已解锁的食物、栖息地、洄游与保护关系
@@ -644,6 +701,7 @@ Commands:
   shop | buy <bait_id> [qty]     Field supplies
   cast [bait_id] [N] [stop=...]  Cast 1-20 times; stop=new,rare,event
   goto | goto <location_id>      World waters and travel unlocks
+  passport                       Location stamps and per-water survey records
   inventory | sell ...           Manage retainable catches
   encyclopedia | journal         Species and observation journals
   ecosystem                      Unlocked food, habitat, migration, and conservation links
@@ -688,6 +746,8 @@ def _run_one(line):
             return _c_cast(bait_id, times, stop)
         if command in ("goto", "go"):
             return _c_goto(args[0] if args else None)
+        if command in ("passport", "pass"):
+            return _c_passport()
         if command in ("inventory", "inv", "i"):
             return _c_inventory()
         if command == "sell":

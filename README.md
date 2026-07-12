@@ -70,6 +70,14 @@ architecture, cold pelagic food webs, migration corridors, slow life histories,
 community conservation, and river connectivity. Locked relationships reveal no
 species answer list; the player must gather repeated observations first.
 
+### Travel passport and personal records
+
+`passport` awards a field stamp on first arrival and keeps per-water totals for
+visits, casts, observed species, wildlife, empty casts, objects, and debris
+cleanup. Species pages remember the first measured size, minimum and maximum,
+locations observed, and day phases observed. A tiny first fish or a species
+seen across several habitats can therefore be as meaningful as a size record.
+
 ### Conservation and release
 
 Species marked `release_only` generate observation ids such as `obs_003`.
@@ -118,6 +126,7 @@ consuming the game PRNG, so identical seeds and commands remain reproducible.
 | `shop` / `buy <bait_id> [qty]` | Inspect or buy field tackle. |
 | `cast [bait_id] [N] [stop=...]` | Cast once or in a deterministic batch. |
 | `goto` / `goto <location_id>` | List or travel to real habitats. |
+| `passport` | Show location stamps, first visits, and per-water survey statistics. |
 | `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
 | `encyclopedia` | Show discovery and verification status. |
 | `journal` | Show native/introduced counts, releases, wildlife, non-fish finds, and corrected mistakes. |

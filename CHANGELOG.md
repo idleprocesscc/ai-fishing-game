@@ -18,6 +18,9 @@
   counts rather than treating the first guess as automatically correct.
 - Added three observation-depth levels and an evidence-gated ecological
   relationship journal spanning food webs, habitat, migration, and conservation.
+- Added a travel passport with first-visit stamps and per-water survey totals.
+- Expanded personal species records beyond maximum size to include first and
+  minimum size, observed places, and observed day phases.
 - Added deterministic local water conditions that alter activity weighting
   without consuming the game PRNG.
 - Added a simulated dawn/day/dusk/night cycle with behavior-specific weighting;

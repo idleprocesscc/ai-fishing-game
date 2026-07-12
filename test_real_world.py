@@ -120,6 +120,30 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertIn("森林结果，鱼群进食", ecosystem)
         self.assertIn("Forest fruit becomes fish food", ecosystem)
 
+    def test_personal_records_track_first_min_max_place_and_time(self):
+        fish = engine.FISH["brown_trout"]
+        engine._record_catch(fish, 40.0, 20)
+        engine._record_catch(fish, 30.0, 20)
+        engine.S["turn"] = 2
+        engine._record_catch(fish, 50.0, 20)
+        entry = engine.S["encyclopedia"][fish["id"]]
+        self.assertEqual(entry["first_size"], 40.0)
+        self.assertEqual(entry["min_size"], 30.0)
+        self.assertEqual(entry["max_size"], 50.0)
+        self.assertEqual(entry["locations_seen"], ["colorado_headwaters"])
+        self.assertEqual(set(entry["times_seen"]), {"dawn", "day"})
+
+    def test_passport_tracks_location_specific_survey_activity(self):
+        local = engine._location_stat()
+        local.update({"casts": 7, "fish": 3, "empty": 2, "objects": 1,
+                      "wildlife": 1, "cleanup": 1,
+                      "species_seen": ["rainbow_trout"],
+                      "wildlife_seen": ["american_dipper"]})
+        passport = engine._c_passport()
+        self.assertIn("世界水域护照", passport)
+        self.assertIn("抛竿7", passport)
+        self.assertIn("物种1", passport)
+
     def test_nonfish_find_is_persisted_in_field_journal(self):
         location_id = engine.S["location_id"]
         found = engine._REAL_WORLD_JUNK[location_id][0]
@@ -148,7 +172,7 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertTrue(any(key.startswith("wildlife|") for key in engine.S["field_observations"]))
 
     def test_public_command_surface_smoke(self):
-        commands = ["help", "status", "conditions", "shop", "goto", "inventory",
+        commands = ["help", "status", "conditions", "shop", "goto", "passport", "inventory",
                     "encyclopedia", "journal", "ecosystem", "look colorado_headwaters",
                     "buy earthworm 1", "cast 3", "sell all"]
         for command in commands:
@@ -202,7 +226,7 @@ class RealWorldDataTests(unittest.TestCase):
             "location_id": "colorado_headwaters", "name": "一片被磨圆的花岗岩",
             "count": 1, "human_debris": False}
         outputs.extend(engine.cmd(command) for command in (
-            "help", "status", "conditions", "shop", "goto", "inventory",
+            "help", "status", "conditions", "shop", "goto", "passport", "inventory",
             "encyclopedia", "journal", "ecosystem", "identify rainbow_trout",
             "identify rainbow_trout 2", "identify rainbow_trout 1",
             "look rainbow_trout", "look colorado_headwaters", "look earthworm",

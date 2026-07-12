@@ -6,7 +6,7 @@
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["language", "status", "conditions", "shop", "buy", "cast", "goto", "inventory", "sell", "encyclopedia", "journal", "ecosystem", "identify", "look", "batch"],
+        "enum": ["language", "status", "conditions", "shop", "buy", "cast", "goto", "passport", "inventory", "sell", "encyclopedia", "journal", "ecosystem", "identify", "look", "batch"],
         "description": "Field-journal action to perform."
       },
       "choice": {
