@@ -59,6 +59,47 @@ class RealWorldDataTests(unittest.TestCase):
                 self.assertTrue(relationship["fact_zh"])
                 self.assertTrue(relationship["fact_en"])
 
+    def test_relationship_cards_expand_to_valid_typed_graph_edges(self):
+        edge_ids = set()
+        for relationship in engine.RELATIONSHIPS:
+            edges = engine._thread_edges(relationship)
+            self.assertGreaterEqual(len(edges), len(relationship["requires"]) + 1)
+            for edge in edges:
+                self.assertNotIn(edge["id"], edge_ids)
+                edge_ids.add(edge["id"])
+                self.assertIsNotNone(engine._thread_node(edge["from"]))
+                self.assertIsNotNone(engine._thread_node(edge["to"]))
+                self.assertTrue(edge["verb_zh"])
+                self.assertTrue(edge["verb_en"])
+        connected_fish = {edge["from"] for relationship in engine.RELATIONSHIPS
+                          for edge in engine._thread_edges(relationship) if edge["from"] in engine.FISH}
+        self.assertEqual(connected_fish, set(engine.FISH))
+
+    def test_thread_evidence_progresses_clue_hypothesis_confirmed(self):
+        rel = next(item for item in engine.RELATIONSHIPS if len(item["requires"]) >= 2 and item.get("min_count", 1) >= 2)
+        first, second = rel["requires"][:2]
+        self.assertEqual(engine._thread_stage(rel), "hidden")
+        engine.S["encyclopedia"][first] = {"count": 1}
+        self.assertEqual(engine._thread_stage(rel), "clue")
+        for fish_id in rel["requires"]:
+            engine.S["encyclopedia"][fish_id] = {"count": 1}
+        self.assertEqual(engine._thread_stage(rel), "hypothesis")
+        for fish_id in rel["requires"]:
+            engine.S["encyclopedia"][fish_id]["count"] = rel["min_count"]
+        self.assertEqual(engine._thread_stage(rel), "confirmed")
+        self.assertIn(rel["title_zh"], engine._c_webs())
+
+    def test_connect_records_supported_and_corrective_guesses(self):
+        rel = engine.RELATIONSHIPS[0]
+        source = rel["requires"][0]
+        engine.S["encyclopedia"][source] = {"count": 1}
+        good = engine._c_connect(source, "link", rel["id"])
+        self.assertIn("✓", good)
+        bad = engine._c_connect(source, "eats", "colorado_headwaters")
+        self.assertIn("✎", bad)
+        self.assertEqual(engine.S["thread_corrections"], 1)
+        self.assertEqual([guess["correct"] for guess in engine.S["thread_guesses"]], [True, False])
+
     def test_wildlife_records_reference_real_places(self):
         for wildlife_id, record in engine.WILDLIFE.items():
             with self.subTest(wildlife=wildlife_id):

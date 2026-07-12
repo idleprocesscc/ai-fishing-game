@@ -155,7 +155,10 @@ remain reproducible.
 | `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
 | `encyclopedia` | Show discovery and verification status. |
 | `journal` | Show native/introduced counts, releases, wildlife, non-fish finds, and corrected mistakes. |
-| `ecosystem` | Show food-web, habitat, migration, and conservation relationships supported by observations. |
+| `threads [node_id]` | Follow faint clues, dotted hypotheses, and confirmed ecological links around a node. |
+| `clues` | Show which repeat observations would test each open hypothesis. |
+| `connect <from> <type> <to>` | Propose a typed link; unsupported guesses enter the correction journal. `link` is accepted as a general type. |
+| `webs` / `ecosystem` | Show completed ecosystem stories whose evidence threads have tightened into a web. |
 | `identify <fish_id> [choice]` | Study and verify an observed species. |
 | `look <id>` | Read the bilingual name, Latin name, field marks, ecology, and conservation note. |
 

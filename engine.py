@@ -75,13 +75,14 @@ S = None
 def _new_state(seed=_DEFAULT_SEED):
     seed = int(seed) & 0xFFFFFFFF
     return {
-        "version": 2, "language": "zh", "seed": seed, "rngState": seed, "rngCalls": 0,
+        "version": 3, "language": "zh", "seed": seed, "rngState": seed, "rngCalls": 0,
         "turn": 0, "season_id": "spring", "season_length": 20,
         "season_started_turn": 0, "points": 200,
         "location_id": "colorado_headwaters",
         "unlocked_locations": ["colorado_headwaters"],
         "bait_inventory": {"earthworm": 8}, "catch_inventory": [],
         "encyclopedia": {}, "field_observations": {}, "legacy_archive_count": 0,
+        "thread_guesses": [], "thread_corrections": 0,
         "location_stats": {"colorado_headwaters": {"first_visit_turn": 0, "visits": 1,
             "casts": 0, "fish": 0, "empty": 0, "objects": 0, "wildlife": 0,
             "cleanup": 0, "species_seen": [], "wildlife_seen": []}},
@@ -163,7 +164,7 @@ def _migrate_state():
     if S.get("location_id") not in LOCATIONS:
         S["location_id"] = "colorado_headwaters"
         _IO_WARN = (_IO_WARN + "\n" if _IO_WARN else "") + _bi("现实野外版已将当前位置迁移到科罗拉多源流。", "Moved to Colorado headwaters for the field edition.")
-    S["version"] = 2
+    S["version"] = 3
 
 
 def _current_condition(location_id=None):
@@ -589,7 +590,8 @@ def _c_journal():
     seen = [f for f in FISH.values() if f["id"] in S["encyclopedia"]]
     native = sum(f.get("native_status") == "native" for f in seen)
     introduced = sum(f.get("native_status") == "introduced" for f in seen)
-    corrections = sum(S["encyclopedia"][f["id"]].get("misidentifications", 0) for f in seen)
+    corrections = (sum(S["encyclopedia"][f["id"]].get("misidentifications", 0) for f in seen)
+                   + S.get("thread_corrections", 0))
     pending = sum(S["encyclopedia"][f["id"]].get("identification") == "pending" for f in seen)
     studied = sum(_observation_level(S["encyclopedia"][f["id"]])[0] == "深入观察" for f in seen)
     observations = sorted(S.get("field_observations", {}).values(), key=lambda item: (-item["count"], item["name"]))
@@ -611,6 +613,145 @@ def _c_journal():
 def _relationship_unlocked(relationship):
     minimum = relationship.get("min_count", 1)
     return all(S["encyclopedia"].get(fid, {}).get("count", 0) >= minimum for fid in relationship["requires"])
+
+
+_THREAD_VERBS = {
+    "competition_and_refuge": ("共同塑造避难所", "shapes refuge with"),
+    "migration": ("依赖洄游通道", "depends on migration corridor"),
+    "habitat_structure": ("利用立体生境", "uses habitat structure"),
+    "cross_ecosystem_food": ("搬运陆水营养", "moves land-water nutrients through"),
+    "community_conservation": ("支持社区监测", "supports community monitoring of"),
+    "food_web": ("参与能量传递", "carries energy through"),
+    "life_history": ("揭示慢生活史", "reveals slow life history in"),
+    "migration_conservation": ("需要连通水系", "needs connected waters in"),
+    "biomass_flow": ("搬运生物量", "moves biomass through"),
+    "community_structure": ("共同揭示群落分层", "helps reveal community structure in"),
+}
+
+
+def _thread_node(node_id):
+    if node_id in FISH:
+        fish = FISH[node_id]
+        return {"id": node_id, "kind": "species", "name_zh": fish["name_zh"], "name_en": fish["name_en"]}
+    if node_id in LOCATIONS:
+        loc = LOCATIONS[node_id]
+        return {"id": node_id, "kind": "place", "name_zh": loc["name_zh"], "name_en": loc["name_en"]}
+    rel = next((item for item in RELATIONSHIPS if item["id"] == node_id), None)
+    if rel:
+        return {"id": node_id, "kind": "ecological_question", "name_zh": rel["title_zh"], "name_en": rel["title_en"]}
+    return None
+
+
+def _thread_edges(relationship):
+    """Expand a relationship card into inspectable evidence-bearing graph edges."""
+    zh, en = _THREAD_VERBS.get(relationship["type"], ("关联于", "is linked to"))
+    edges = []
+    for fish_id in relationship["requires"]:
+        edges.append({"id": "%s|%s" % (fish_id, relationship["id"]),
+                      "from": fish_id, "to": relationship["id"], "verb_zh": zh, "verb_en": en,
+                      "relationship_id": relationship["id"]})
+    edges.append({"id": "%s|%s" % (relationship["id"], relationship["location_id"]),
+                  "from": relationship["id"], "to": relationship["location_id"],
+                  "verb_zh": "发生于", "verb_en": "unfolds in", "relationship_id": relationship["id"]})
+    first_local = next(rel for rel in RELATIONSHIPS if rel["location_id"] == relationship["location_id"])
+    if first_local["id"] == relationship["id"]:
+        for fish in FISH.values():
+            if relationship["location_id"] in fish["locations"]:
+                edges.append({"id": "%s|%s" % (fish["id"], relationship["location_id"]),
+                              "from": fish["id"], "to": relationship["location_id"],
+                              "verb_zh": "栖居于", "verb_en": "inhabits",
+                              "relationship_id": relationship["id"]})
+    return edges
+
+
+def _thread_stage(relationship):
+    counts = [S["encyclopedia"].get(fid, {}).get("count", 0) for fid in relationship["requires"]]
+    if counts and all(count >= relationship.get("min_count", 1) for count in counts):
+        return "confirmed"
+    if counts and all(count >= 1 for count in counts):
+        return "hypothesis"
+    if any(count >= 1 for count in counts):
+        return "clue"
+    return "hidden"
+
+
+def _thread_mark(stage):
+    return {"clue": "·", "hypothesis": "┈", "confirmed": "━", "hidden": "?"}[stage]
+
+
+def _c_threads(query=None):
+    relationships = RELATIONSHIPS
+    if query:
+        relationships = [rel for rel in RELATIONSHIPS if query in (rel["id"], rel["location_id"])
+                         or any(edge["from"] == query for edge in _thread_edges(rel))]
+        if not relationships:
+            return _bi("没有找到节点：%s", "No thread node found: %s") % query
+    visible = [rel for rel in relationships if _thread_stage(rel) != "hidden"]
+    stages = {name: sum(_thread_stage(rel) == name for rel in RELATIONSHIPS)
+              for name in ("clue", "hypothesis", "confirmed")}
+    lines = [_bi("[生态丝线] 线索%d · 假说%d · 已证实%d/%d", "[Ecological threads] clues %d · hypotheses %d · confirmed %d/%d") %
+             (stages["clue"], stages["hypothesis"], stages["confirmed"], len(RELATIONSHIPS))]
+    if not visible:
+        lines.append(_bi("先观察一个物种，第一根淡线就会浮现。", "Observe one species and the first faint thread will appear."))
+    for rel in visible:
+        stage = _thread_stage(rel)
+        title = rel["title_en"] if _is_en() else rel["title_zh"] + " / " + rel["title_en"]
+        lines.append("\n%s %s [%s]" % (_thread_mark(stage), title, stage))
+        for edge in _thread_edges(rel):
+            if edge["from"] in FISH and edge["from"] not in S["encyclopedia"]:
+                continue
+            source, target = _thread_node(edge["from"]), _thread_node(edge["to"])
+            verb = edge["verb_en"] if _is_en() else edge["verb_zh"]
+            lines.append("  %s %s %s %s" % (_name(source), _thread_mark(stage), verb, _name(target)))
+        if stage == "confirmed":
+            lines.append("  🔬 " + _field(rel, "fact"))
+    return "\n".join(lines)
+
+
+def _c_clues():
+    open_rel = [rel for rel in RELATIONSHIPS if _thread_stage(rel) in ("clue", "hypothesis")]
+    lines = [_bi("[待查线索] %d条", "[Open clues] %d") % len(open_rel)]
+    for rel in open_rel:
+        missing = []
+        minimum = rel.get("min_count", 1)
+        for fid in rel["requires"]:
+            count = S["encyclopedia"].get(fid, {}).get("count", 0)
+            if count < minimum:
+                missing.append("%s %d/%d" % (_name(FISH[fid]), count, minimum))
+        lines.append("%s %s: %s" % (_thread_mark(_thread_stage(rel)), _field(rel, "title"), ", ".join(missing)))
+    if len(lines) == 1:
+        lines.append(_bi("尚无开放线索；先去不同水域观察。", "No open clues yet; begin with observations in different waters."))
+    return "\n".join(lines)
+
+
+def _c_connect(source, verb, target):
+    edge = next((edge for rel in RELATIONSHIPS for edge in _thread_edges(rel)
+                 if edge["from"] == source and edge["to"] == target), None)
+    rel = next((rel for rel in RELATIONSHIPS if edge and rel["id"] == edge["relationship_id"]), None)
+    accepted = edge and verb in (rel["type"], edge["verb_en"].replace(" ", "_"), edge["verb_zh"], "link")
+    guess = {"from": source, "verb": verb, "to": target, "correct": bool(accepted), "turn": S["turn"]}
+    S["thread_guesses"].append(guess)
+    if not accepted:
+        S["thread_corrections"] += 1
+        return _bi("✎ 这条线暂不受图鉴证据支持，已写入纠错日志；可用 threads <节点id> 重查。",
+                   "✎ This link is not supported by the field evidence and was added to corrections; inspect threads <node_id>.")
+    stage = _thread_stage(rel)
+    if stage == "hidden":
+        return _bi("? 方向合理，但你还没观察到能支撑它的生物证据。", "? The direction is valid, but you have not observed biological evidence for it yet.")
+    expected = edge["verb_en"] if _is_en() else edge["verb_zh"]
+    return _bi("✓ 丝线吻合：%s（当前阶段：%s）。继续重复观察才能拉紧。",
+               "✓ Thread matched: %s (current stage: %s). Repeat observations to tighten it.") % (expected, stage)
+
+
+def _c_webs():
+    confirmed = [rel for rel in RELATIONSHIPS if _thread_stage(rel) == "confirmed"]
+    lines = [_bi("[织网时刻] %d/%d个生态闭环", "[Woven webs] %d/%d ecosystem stories") % (len(confirmed), len(RELATIONSHIPS))]
+    for rel in confirmed:
+        lines.append("◆ %s · %s" % (_field(rel, "title"), _name(LOCATIONS[rel["location_id"]])))
+        lines.append("  " + _field(rel, "fact"))
+    if not confirmed:
+        lines.append(_bi("把同一条关系中的物种都观察到要求次数，虚线就会收紧成网。", "Observe every species in one relationship enough times to tighten dotted lines into a web."))
+    return "\n".join(lines)
 
 
 def _c_ecosystem():
@@ -720,7 +861,10 @@ _HELP_ZH = """🌍🎣 World Waters Field Journal
   stories                        明确标注为原创虚构的营火故事册
   inventory | sell ...           管理可留存渔获
   encyclopedia | journal         图鉴与观察日志
-  ecosystem                      已解锁的食物、栖息地、洄游与保护关系
+  threads [node_id]              查看线索、假说与已证实的生态丝线
+  clues                          查看下一步缺少的观察证据
+  connect <from> <type> <to>     提交一条关系猜想（type也可用link）
+  webs | ecosystem               查看已经织成的生态闭环
   identify <fish_id> [choice]    纠错鉴定
   look <id_or_name>              阅读物种、地点或饵的科普记录
 可用分号批量执行最多8条命令。空杆、自然物与废弃物同样是调查结果。"""
@@ -737,7 +881,10 @@ Commands:
   stories                        Original fiction, explicitly separate from science records
   inventory | sell ...           Manage retainable catches
   encyclopedia | journal         Species and observation journals
-  ecosystem                      Unlocked food, habitat, migration, and conservation links
+  threads [node_id]              Inspect clue, hypothesis, and confirmed threads
+  clues                          Show observations needed to test open threads
+  connect <from> <type> <to>     Submit a relationship guess (or use type=link)
+  webs | ecosystem               Show completed ecosystem stories
   identify <fish_id> [choice]    Corrective identification
   look <id_or_name>              Read species, place, bait, or wildlife notes
 Use semicolons to batch up to eight commands. Empty casts, natural objects, debris, and wildlife are all valid field results."""
@@ -791,8 +938,18 @@ def _run_one(line):
             return _c_encyclopedia()
         if command in ("journal", "j"):
             return _c_journal()
+        if command in ("threads", "thread"):
+            return _c_threads(args[0] if args else None)
+        if command == "clues":
+            return _c_clues()
+        if command == "connect":
+            if len(args) != 3:
+                return _bi("用法：connect <from_id> <type|link> <to_id>", "Usage: connect <from_id> <type|link> <to_id>")
+            return _c_connect(args[0], args[1], args[2])
+        if command in ("webs", "web"):
+            return _c_webs()
         if command in ("ecosystem", "eco"):
-            return _c_ecosystem()
+            return _c_webs()
         if command in ("identify", "id"):
             choice = int(args[1]) if len(args) > 1 and args[1].isdigit() else None
             return _c_identify(args[0] if args else "", choice)

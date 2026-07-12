@@ -1,5 +1,13 @@
 # Changelog
 
+## Ecological Threads
+
+- Expanded relationship cards into a typed node-and-edge evidence graph.
+- Added clue, hypothesis, and confirmed stages driven by field observations.
+- Added `threads`, `clues`, `connect`, and `webs` commands plus persistent
+  correction history for unsupported relationship guesses.
+- Migrated saves to version 3 while preserving all existing observations.
+
 ## World Waters field edition — 2026-07
 
 - Forked the MIT-licensed deterministic command architecture from

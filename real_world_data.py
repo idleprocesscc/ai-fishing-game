@@ -526,6 +526,14 @@ RELATIONSHIPS = [
      "requires": ["siamese_mud_carp", "striped_catfish"], "min_count": 3,
      "title_zh": "小鱼也能移动巨量生物量", "title_en": "Small fish can move enormous biomass",
      "fact_zh": "个体尺寸很小的洄游鱼能以庞大鱼群移动营养与能量；生态重要性不能只按单条鱼的重量排序。"},
+    {"id": "colorado_reservoir_layers", "location_id": "colorado_reservoir", "type": "community_structure",
+     "requires": ["smallmouth_bass", "lake_trout"], "min_count": 2,
+     "title_zh": "同一水库，不同温度层", "title_en": "One reservoir, different thermal layers",
+     "fact_zh": "水库并非均一水盆：冷水深层、温暖岸带与季节性混合让冷水鱼和暖水鱼在同一地图上占据不同生态空间。"},
+    {"id": "cape_open_water_pulse", "location_id": "cape_open_water", "type": "food_web",
+     "requires": ["snoek", "yellowtail_amberjack"], "min_count": 2,
+     "title_zh": "开放水域的猎物脉冲", "title_en": "Prey pulses in open water",
+     "fact_zh": "开放水域捕食者会追随小型鱼群、水团边界与上升流形成的短暂食物脉冲；蓝色水面之下并不均匀。"},
 ]
 
 _RELATION_FACT_EN = {
@@ -539,6 +547,10 @@ _RELATION_FACT_EN = {
     "baikal_slow_recovery": "Baikal sturgeon mature slowly and depend on tributaries to spawn; sustained loss of adults or young cannot be replaced by rapid reproduction.",
     "mekong_connected_river": "Large migratory fish link deep pools, main channel, tributaries, and spawning grounds into one life-history route; protecting one site cannot replace corridor connectivity.",
     "mekong_small_fish_scale": "Small migratory fish can move nutrients and energy in enormous schools; ecological importance cannot be ranked by individual body mass alone."}
+_RELATION_FACT_EN.update({
+    "colorado_reservoir_layers": "A reservoir is not a uniform bowl: cold depths, warm shorelines, and seasonal mixing let coldwater and warmwater fish occupy different ecological space on the same map.",
+    "cape_open_water_pulse": "Open-water predators follow small-fish schools, water-mass boundaries, and brief food pulses created by upwelling; the blue surface does not cover a uniform habitat.",
+})
 for _relationship in RELATIONSHIPS:
     _relationship["fact_en"] = _RELATION_FACT_EN[_relationship["id"]]
 
