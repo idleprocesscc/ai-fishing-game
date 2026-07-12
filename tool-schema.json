@@ -6,7 +6,7 @@
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["language", "status", "conditions", "shop", "buy", "cast", "goto", "passport", "stories", "inventory", "sell", "encyclopedia", "journal", "ecosystem", "identify", "look", "batch"],
+        "enum": ["language", "status", "conditions", "shop", "buy", "cast", "goto", "passport", "stories", "inventory", "sell", "encyclopedia", "journal", "threads", "clues", "connect", "webs", "ecosystem", "identify", "look", "batch"],
         "description": "Field-journal action to perform."
       },
       "choice": {
@@ -54,7 +54,19 @@
       },
       "id": {
         "type": "string",
-        "description": "For look: species, location, or bait id/name. Unobserved species remain hidden."
+        "description": "For look or threads: species, location, ecological-question, bait, or wildlife id/name."
+      },
+      "from_id": {
+        "type": "string",
+        "description": "For connect: source node id."
+      },
+      "relation_type": {
+        "type": "string",
+        "description": "For connect: proposed typed relationship; use link for a general proposal."
+      },
+      "to_id": {
+        "type": "string",
+        "description": "For connect: target node id."
       },
       "steps": {
         "type": "array",

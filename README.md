@@ -175,6 +175,7 @@ AI play because it saves context while stopping at meaningful observations.
 | `fishing.py` | Generated single-file blind-play build for an AI player. |
 | `build_blind.py` | Bundles the engine and data module into `fishing.py`. |
 | `tool-schema.json` | Structured tool schema for an MCP/tool wrapper. |
+| `mcp_server.py` | Dependency-free stdio MCP server used by Claude Code. |
 | `test_real_world.py` | Data-integrity, release, correction, and determinism tests. |
 | `SOURCES.md` | Research provenance and content policy. |
 
