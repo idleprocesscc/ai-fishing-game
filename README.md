@@ -84,6 +84,15 @@ cleanup. Species pages remember the first measured size, minimum and maximum,
 locations observed, and day phases observed. A tiny first fish or a species
 seen across several habitats can therefore be as meaningful as a size record.
 
+### Science and fiction never share a drawer
+
+`stories` unlocks six original campfire tales after sustained surveys in their
+waters. Every page is explicitly labeled as original fiction—not a species
+fact, probability hint, or claim about local traditional knowledge. Stories
+have no Latin names and cannot enter the species or wildlife tables. They never
+alter outcomes. This lets natural-history play coexist with a small eerie glow
+without manufacturing fake biology.
+
 ### Conservation and release
 
 Species marked `release_only` generate observation ids such as `obs_003`.
@@ -134,6 +143,7 @@ remain reproducible.
 | `cast [bait_id] [N] [stop=...]` | Cast once or in a deterministic batch. |
 | `goto` / `goto <location_id>` | List or travel to real habitats. |
 | `passport` | Show location stamps, first visits, and per-water survey statistics. |
+| `stories` | Read unlocked original fiction, structurally separated from scientific records. |
 | `inventory` / `sell ...` | Manage retainable catches; release-only observations never appear here. |
 | `encyclopedia` | Show discovery and verification status. |
 | `journal` | Show native/introduced counts, releases, wildlife, non-fish finds, and corrected mistakes. |

@@ -21,6 +21,8 @@
 - Added a travel passport with first-visit stamps and per-water survey totals.
 - Expanded personal species records beyond maximum size to include first and
   minimum size, observed places, and observed day phases.
+- Added six unlockable original campfire stories in a separate fiction table;
+  they are explicitly disclaimed, have no Latin names, and never affect odds.
 - Added deterministic local water conditions that alter activity weighting
   without consuming the game PRNG.
 - Added a simulated dawn/day/dusk/night cycle with behavior-specific weighting;

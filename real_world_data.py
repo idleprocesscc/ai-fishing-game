@@ -605,3 +605,33 @@ WILDLIFE = {
         "Freshwater prawns connect detritus, small prey, fish, and people across river and floodplain food webs.",
         "淡水长臂虾把碎屑、小型猎物、鱼类与人类利用连接进河流和泛滥平原食物网。"),
 }
+
+
+# Original fiction is structurally separate from species and science data.
+# These are not claims about local traditional knowledge and never affect odds.
+STORIES = [
+    {"id": "colorado_returned_line", "location_id": "colorado_headwaters", "casts_required": 5,
+     "title_zh": "自己回来的鱼线", "title_en": "The Line That Returned",
+     "text_zh": "营火旁有人说，源流会把遗失的鱼线一圈圈推回岸边，直到失主学会不用它们缠住河底。第二天，靴旁果然多了一团旧线——也可能只是昨夜涨水。",
+     "text_en": "Around the fire, someone says the headwater returns lost line coil by coil until its owner learns not to leave it below. By morning an old tangle lies beside the boots—or perhaps the water simply rose overnight."},
+    {"id": "hokkaido_second_splash", "location_id": "hokkaido_river", "casts_required": 5,
+     "title_zh": "第二声水响", "title_en": "The Second Splash",
+     "text_zh": "故事里，森林河每次鱼跃后都会晚半拍响起第二声，像山在练习模仿河流。调查员写道：若只听声音，永远别把回声当成第二条鱼。",
+     "text_en": "In the story, every leap in the forest river is followed by a second splash, as if the mountain were practicing the river's voice. The observer writes: never turn an echo into a second fish merely by listening."},
+    {"id": "cape_kelp_knock", "location_id": "cape_kelp_forest", "casts_required": 5,
+     "title_zh": "巨藻门外的敲击", "title_en": "The Knock Beyond the Kelp Door",
+     "text_zh": "浪涌合上巨藻走廊时，潜水员听见三次敲击；浪退后只有固着器里的小石块互相碰撞。故事坚持那是海藻林在询问来客有没有保持距离。",
+     "text_en": "When surge closes the kelp corridor, a diver hears three knocks. After the water falls away, only small stones click inside a holdfast. The story insists the forest was asking whether its visitor kept a respectful distance."},
+    {"id": "amazon_lake_counts", "location_id": "amazon_flooded_forest", "casts_required": 5,
+     "title_zh": "会数数的湖", "title_en": "The Lake That Counts Back",
+     "text_zh": "管理者数浮头换气的巨骨舌鱼，传说湖也在数岸上的人。若有人多报一条鱼，夜里就会少听见一次换气声。真正的记录表当然不会接受传说作证据。",
+     "text_en": "Managers count arapaima surfacing for air; the tale says the lake counts people on shore. Add a fish that was not there, and one breath goes missing at night. The real survey sheet, of course, accepts no tale as evidence."},
+    {"id": "baikal_light_under_ice", "location_id": "baikal_littoral", "casts_required": 5,
+     "title_zh": "冰下那盏灯", "title_en": "The Lamp Beneath the Ice",
+     "text_zh": "有人看见冰下有一盏灯缓慢升降，便说是湖在读夜间观察日志。科学笔记只写：透明水体、移动生物与折射足以制造许多灯。两种文字被并排保留。",
+     "text_en": "A lamp seems to rise and fall beneath the ice, and someone says the lake is reading the night journal. The science note records only that clear water, moving organisms, and refraction can manufacture many lamps. Both texts are kept side by side."},
+    {"id": "mekong_deep_pool_echo", "location_id": "mekong_mainstem", "casts_required": 5,
+     "title_zh": "深潭归还的名字", "title_en": "The Name Returned by the Deep Pool",
+     "text_zh": "船经过深潭时，故事要求每个人只说一次自己的名字；第二次若从水面传来，就当作水流与船壳的回声，不回答，也不靠近。",
+     "text_en": "Passing a deep pool, the story permits each traveler to say their name once. If it returns from the water, treat it as current and hull echo: do not answer, and do not approach."},
+]

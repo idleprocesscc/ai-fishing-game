@@ -67,6 +67,14 @@ class RealWorldDataTests(unittest.TestCase):
             for episode in episodes:
                 for key in ("name_zh", "name_en", "fact_zh", "fact_en"):
                     self.assertTrue(episode[key])
+        story_ids = {story["id"] for story in engine.STORIES}
+        self.assertTrue(story_ids.isdisjoint(engine.FISH))
+        self.assertTrue(story_ids.isdisjoint(engine.WILDLIFE))
+        for story in engine.STORIES:
+            self.assertIn(story["location_id"], engine.LOCATIONS)
+            for key in ("title_zh", "title_en", "text_zh", "text_en"):
+                self.assertTrue(story[key])
+            self.assertNotIn("latin", story)
 
     def test_every_location_has_junk_and_conditions(self):
         for location_id in engine.LOCATIONS:
@@ -162,6 +170,16 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertIn("抛竿7", passport)
         self.assertIn("物种1", passport)
 
+    def test_fiction_unlocks_separately_and_is_explicitly_disclaimed(self):
+        local = engine._location_stat("colorado_headwaters")
+        local["casts"] = 4
+        self.assertNotIn("自己回来的鱼线", engine._c_stories())
+        local["casts"] = 5
+        stories = engine._c_stories()
+        self.assertIn("自己回来的鱼线", stories)
+        self.assertIn("原创虚构", stories)
+        self.assertIn("不是物种事实", stories)
+
     def test_nonfish_find_is_persisted_in_field_journal(self):
         location_id = engine.S["location_id"]
         found = engine._REAL_WORLD_JUNK[location_id][0]
@@ -190,7 +208,7 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertTrue(any(key.startswith("wildlife|") for key in engine.S["field_observations"]))
 
     def test_public_command_surface_smoke(self):
-        commands = ["help", "status", "conditions", "shop", "goto", "passport", "inventory",
+        commands = ["help", "status", "conditions", "shop", "goto", "passport", "stories", "inventory",
                     "encyclopedia", "journal", "ecosystem", "look colorado_headwaters",
                     "buy earthworm 1", "cast 3", "sell all"]
         for command in commands:
@@ -244,7 +262,7 @@ class RealWorldDataTests(unittest.TestCase):
             "location_id": "colorado_headwaters", "name": "一片被磨圆的花岗岩",
             "count": 1, "human_debris": False}
         outputs.extend(engine.cmd(command) for command in (
-            "help", "status", "conditions", "shop", "goto", "passport", "inventory",
+            "help", "status", "conditions", "shop", "goto", "passport", "stories", "inventory",
             "encyclopedia", "journal", "ecosystem", "identify rainbow_trout",
             "identify rainbow_trout 2", "identify rainbow_trout 1",
             "look rainbow_trout", "look colorado_headwaters", "look earthworm",

@@ -16,6 +16,7 @@ from real_world_data import FISH as _FISH
 from real_world_data import LOCATIONS as _LOCATIONS
 from real_world_data import RELATIONSHIPS as _RELATIONSHIPS
 from real_world_data import SURFACE_JUNK as _SURFACE_JUNK
+from real_world_data import STORIES as _STORIES
 from real_world_data import WILDLIFE as _WILDLIFE
 
 
@@ -64,6 +65,7 @@ _REAL_WORLD_CONDITIONS = copy.deepcopy(_CONDITIONS)
 EPISODES = copy.deepcopy(_EPISODES)
 RELATIONSHIPS = copy.deepcopy(_RELATIONSHIPS)
 WILDLIFE = copy.deepcopy(_WILDLIFE)
+STORIES = copy.deepcopy(_STORIES)
 
 _SAVE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fishing_save.json")
 _IO_WARN = ""
@@ -524,6 +526,19 @@ def _c_passport():
     return "\n".join(lines)
 
 
+def _c_stories():
+    unlocked = [story for story in STORIES
+                if S.get("location_stats", {}).get(story["location_id"], {}).get("casts", 0) >= story["casts_required"]]
+    disclaimer = _bi("⚠ 原创虚构营火故事；不是物种事实、概率提示或当地传统记录。",
+                     "⚠ Original fictional campfire stories; not species facts, probability hints, or records of local tradition.")
+    lines = [_bi("[水边故事册] %d/%d", "[Waterside storybook] %d/%d") % (len(unlocked), len(STORIES)), disclaimer]
+    for story in unlocked:
+        lines.append("\n◇ %s\n%s" % (_field(story, "title"), _field(story, "text")))
+    if len(unlocked) < len(STORIES):
+        lines.append(_bi("\n继续在不同水域调查，另有%d篇故事尚未解锁。", "\nContinue surveying different waters; %d story or stories remain locked.") % (len(STORIES) - len(unlocked)))
+    return "\n".join(lines)
+
+
 def _c_inventory():
     if not S["catch_inventory"]:
         return _bi("[鱼篓] 空。保护物种只存在观察日志中。", "[Creel] Empty. Protected species exist only in the observation journal.")
@@ -702,6 +717,7 @@ _HELP_ZH = """🌍🎣 World Waters Field Journal
   cast [bait_id] [N] [stop=...]  抛竿1-20次；stop=new,rare,event
   goto | goto <location_id>      世界水域与旅行解锁
   passport                       地点章、首访与各水域调查统计
+  stories                        明确标注为原创虚构的营火故事册
   inventory | sell ...           管理可留存渔获
   encyclopedia | journal         图鉴与观察日志
   ecosystem                      已解锁的食物、栖息地、洄游与保护关系
@@ -718,6 +734,7 @@ Commands:
   cast [bait_id] [N] [stop=...]  Cast 1-20 times; stop=new,rare,event
   goto | goto <location_id>      World waters and travel unlocks
   passport                       Location stamps and per-water survey records
+  stories                        Original fiction, explicitly separate from science records
   inventory | sell ...           Manage retainable catches
   encyclopedia | journal         Species and observation journals
   ecosystem                      Unlocked food, habitat, migration, and conservation links
@@ -764,6 +781,8 @@ def _run_one(line):
             return _c_goto(args[0] if args else None)
         if command in ("passport", "pass"):
             return _c_passport()
+        if command in ("stories", "story"):
+            return _c_stories()
         if command in ("inventory", "inv", "i"):
             return _c_inventory()
         if command == "sell":
