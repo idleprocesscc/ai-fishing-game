@@ -6,7 +6,7 @@
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["status", "shop", "buy", "cast", "dive", "choose", "surface", "goto", "inventory", "sell", "open", "encyclopedia", "journal", "look", "batch"],
+        "enum": ["status", "shop", "buy", "cast", "dive", "choose", "surface", "goto", "inventory", "sell", "open", "encyclopedia", "journal", "identify", "look", "batch"],
         "description": "Action to perform. dive starts an expedition after buying oxygen; choose resolves a paused major underwater site; surface ends the expedition."
       },
       "choice": {

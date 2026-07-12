@@ -2138,7 +2138,8 @@ def _value(f, size):
 def _upd_enc(f, size, value):
     first = f["id"] not in S["encyclopedia"]
     if first:
-        S["encyclopedia"][f["id"]] = {"discovered": True, "first_caught_turn": S["turn"], "count": 0, "max_size": 0, "total_value_earned": 0}
+        S["encyclopedia"][f["id"]] = {"discovered": True, "first_caught_turn": S["turn"], "count": 0, "max_size": 0, "total_value_earned": 0,
+                                          "identification": "pending" if f.get("quiz") else "verified", "misidentifications": 0}
     e = S["encyclopedia"][f["id"]]
     e["count"] += 1; e["max_size"] = max(e["max_size"], size); e["total_value_earned"] += value
     return first
@@ -2415,7 +2416,7 @@ def _c_enc():
         by[f["rarity"]] = cur
     rl = "  ".join("%s %d/%d" % (RARITY[k]["label"], by[k][0], by[k][1]) for k in RARITY if k in by)
     # Encyclopedia output stays compact and discovery-focused.
-    lines = ["✔ %s (%s) ×%d max %scm" % (f["name"], _rar(f["rarity"]), S["encyclopedia"][f["id"]]["count"], S["encyclopedia"][f["id"]]["max_size"])
+    lines = ["%s %s (%s) ×%d max %scm" % ("✔" if S["encyclopedia"][f["id"]].get("identification", "verified") == "verified" else "?", f["name"], _rar(f["rarity"]), S["encyclopedia"][f["id"]]["count"], S["encyclopedia"][f["id"]]["max_size"])
              for f in FISH.values() if f["id"] in S["encyclopedia"]]
     lb = ""
     for ev in EVENTS.values():
@@ -2455,6 +2456,31 @@ def _c_look(oid):
     x = _by_id_or_name(SEASONS, oid)
     if x: return "%s\n%s" % (x["name"], x["description"])
     return "No such object: %s" % oid
+
+def _c_identify(fid, choice=None):
+    f = FISH.get(fid)
+    if not f: return "没有这个物种 id：%s" % fid
+    e = S["encyclopedia"].get(fid)
+    if not e: return "你还没有观察到这个物种，暂时无法进行鉴定。"
+    quiz = f.get("quiz")
+    if not quiz:
+        e["identification"] = "verified"
+        return "%s 的记录不需要额外纠错题，已经确认。" % f["name"]
+    if choice is None:
+        opts = "\n".join("  %d. %s" % (i + 1, text) for i, text in enumerate(quiz["choices_zh"]))
+        state = "（已确认，可再次复习）" if e.get("identification") == "verified" else "（待鉴定）"
+        return "[物种鉴定] %s %s\n%s\n%s\n回答：identify %s <编号>" % (f["name"], state, quiz["question_zh"], opts, fid)
+    if not 1 <= choice <= len(quiz["choices_zh"]):
+        return "选项应为 1-%d。" % len(quiz["choices_zh"])
+    if choice == quiz["answer"]:
+        first_verify = e.get("identification") != "verified"
+        e["identification"] = "verified"
+        if first_verify:
+            S["points"] += 10
+        return "✅ 鉴定确认：%s\n%s%s" % (f["name"], quiz["explanation_zh"], "\n观察奖励 +10 pts" if first_verify else "")
+    e["misidentifications"] = e.get("misidentifications", 0) + 1
+    e["identification"] = "pending"
+    return "↺ 这次判断需要修正。%s\n误判已写入观察日志；可以重新检查特征后再答。" % quiz["wrong_zh"]
 _BITE_SOFT = ["The float dips softly--", "The float vanishes with a plunk--", "The line tightens; something is moving--"]
 _BITE_HARD = ["The line snaps tight, nearly out of your hand--!", "The rod bends hard and spray erupts--!", "A heavy force drags downward--!"]
 def _bite_line(rng, rarity):
@@ -2473,7 +2499,8 @@ def _format_catch(f, size, value, inst, first):
         body = "%s · %s%s · %d pts%s\n%s%s" % (f["name"], size, u, value, nm, flavor, ("\n📜 " + f["rumor"]) if f.get("rumor") else "")
         return "%s\n%s\n%s" % (top, body, top) if r == "mythic" else "%s\n%s" % (top, body)
     if first:   # First discoveries include compact detail and bonus text.
-        return "🆕 %s · %s · %s%s · %d pts\n%s\nFirst record +%d pts" % (f["name"], rl, size, u, value, flavor, RARITY[r]["discovery_bonus"])
+        quiz_note = "\n🔎 新观察仍待鉴定：identify %s" % f["id"] if f.get("quiz") else ""
+        return "🆕 %s · %s · %s%s · %d pts\n%s\nFirst record +%d pts%s" % (f["name"], rl, size, u, value, flavor, RARITY[r]["discovery_bonus"], quiz_note)
     if r in ("rare", "epic"):
         return "%s %s · %s%s · %d pts\n%s" % ("✦✦ Epic" if r == "epic" else "✦ Rare", f["name"], size, u, value, flavor)
     return "· %s%s %s%s +%d" % (f["name"], " (uncommon)" if r == "uncommon" else "", size, u, value)
@@ -2531,9 +2558,11 @@ def _c_journal():
     lines = ["[观察日志] %d/%d 种 | 原生 %d · 引入 %d · 保护放流 %d 次" % (len(seen), len(FISH), native, introduced, released)]
     for f in seen:
         e = S["encyclopedia"][f["id"]]
-        mark = "📷" if f.get("release_only") else "✓"
-        lines.append("%s %s / %s — 观察%d次，最大%s cm" % (mark, f["name"], f.get("name_en", f["id"]), e["count"], e["max_size"]))
-    lines.append("提示：用 look <物种id> 查看辨认特征、原生身份和科普笔记。")
+        verified = e.get("identification", "verified") == "verified"
+        mark = "📷" if f.get("release_only") else ("✓" if verified else "?")
+        correction = " · 待鉴定" if not verified else (" · 曾纠正%d次" % e.get("misidentifications", 0) if e.get("misidentifications", 0) else "")
+        lines.append("%s %s / %s — 观察%d次，最大%s cm%s" % (mark, f["name"], f.get("name_en", f["id"]), e["count"], e["max_size"], correction))
+    lines.append("提示：用 identify <物种id> 学习鉴别；用 look <物种id> 查看完整科普笔记。")
     return "\n".join(lines)
 
 # Map fragments and rare full maps unlock dive sites.
@@ -2846,6 +2875,7 @@ Commands passed to cmd() are case-insensitive:
   cmd('open <chest_uid>')                Open a pending chest.
   cmd('encyclopedia')                    Show discovered fish and collected letters.
   cmd('journal')                         Show the ecological observation log, native status, and releases.
+  cmd('identify <fish_id> [choice]')     Inspect field marks, answer an identification exercise, and correct mistakes.
   cmd('look <id_or_name>')               Inspect a fish, location, bait, season, or item. Unknown fish stay hidden as ???.
   cmd('A; B; C')                         Run up to 8 commands as a batch, e.g. cmd('buy basic_worm 10; cast 10').
 Surface casts may find bottles, chests, treasures, and lucky moments. Diving finds underwater-only species and may pause at major sites for choose. Every result ends with a compact 📊 JSON status line, so you usually do not need a separate status call.
@@ -2867,7 +2897,7 @@ def _run_one(line):
     parts = line.split()
     c = parts[0].lower(); a = parts[1:]
     # During an expedition, only choices, surfacing, and read-only commands are allowed.
-    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "inventory", "inv", "i", "encyclopedia", "enc", "e", "journal", "j", "look", "l", "help", "h"):
+    if S.get("expedition") and c not in ("choose", "ch", "surface", "up", "status", "s", "inventory", "inv", "i", "encyclopedia", "enc", "e", "journal", "j", "identify", "id", "look", "l", "help", "h"):
         return "You are still underwater. Use choose <number> for the current site, or surface to return."
     try:
         if c in ("help", "h"): return _HELP
@@ -2897,6 +2927,9 @@ def _run_one(line):
         elif c == "sell": return _c_sell(" ".join(a))
         elif c in ("encyclopedia", "enc", "e"): return _c_enc()
         elif c in ("journal", "j"): return _c_journal()
+        elif c in ("identify", "id"):
+            choice = int(a[1]) if len(a) > 1 and a[1].isdigit() else None
+            return _c_identify(a[0] if a else "", choice)
         elif c in ("look", "l"): return _c_look(a[0] if a else "")
         else: return "Unknown command '%s'. Use cmd('help') for the command list." % c
     except Exception as e:

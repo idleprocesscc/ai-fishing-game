@@ -190,6 +190,45 @@ FISH = {
         "黄色尾鳍和淡黄色体侧带与流线型蓝灰身体形成鲜明对比。"),
 }
 
+# Identification exercises are observations, not trivia detached from the fish.
+# Each asks the player to use a visible field mark that separates a commonly
+# confused species or corrects a misleading common name.
+FISH["colorado_river_cutthroat"]["quiz"] = {
+    "question_zh": "这条鱼下颌有橙红色斑，黑斑集中于尾柄附近。哪项判断最可靠？",
+    "choices_zh": ["这是虹鳟，因为所有鳟鱼都有粉色侧带", "这是割喉鳟；下颌色斑和尾部斑点分布是关键", "仅凭体型就能确定"],
+    "answer": 2,
+    "explanation_zh": "正确。割喉鳟的下颌橙红斑是核心线索；体色会变化，不能只凭整体颜色或体型。",
+    "wrong_zh": "先别急着定种。整体颜色和体型都容易随环境与年龄变化，应优先检查下颌色斑与斑点分布。",
+}
+FISH["rainbow_trout"]["quiz"] = {
+    "question_zh": "怎样把虹鳟与常被混淆的褐鳟区分开？",
+    "choices_zh": ["看背部、背鳍和尾鳍是否普遍有细小黑斑", "只看鱼是不是银色", "只看长度是否超过30厘米"],
+    "answer": 1,
+    "explanation_zh": "正确。虹鳟通常在背部、背鳍和尾鳍都有密集细黑斑；银亮程度和体长都不是稳定鉴别点。",
+    "wrong_zh": "银亮程度和体长会随个体与环境变化。请把注意力移到鳍和斑点分布上。",
+}
+FISH["lake_trout"]["quiz"] = {
+    "question_zh": "“Lake Trout”这个英文俗名最容易造成什么误解？",
+    "choices_zh": ["它只能生活在湖边", "它分类上其实是红点鲑属的 char，并非典型 trout", "它没有斑点"],
+    "answer": 2,
+    "explanation_zh": "正确。俗名不等于严格分类；湖红点鲑属于 Salvelinus（红点鲑属）。",
+    "wrong_zh": "这是一次名称陷阱。查学名属名 Salvelinus，再判断它与 trout 的关系。",
+}
+FISH["cherry_salmon"]["quiz"] = {
+    "question_zh": "观察到体侧椭圆幼鱼斑的小型个体时，为什么不能断言它永远不会入海？",
+    "choices_zh": ["所有小鱼都会入海", "樱鳟具有降海型与河川残留型，幼年外观不能单独决定未来生活史", "斑纹与生活史完全无关"],
+    "answer": 2,
+    "explanation_zh": "正确。同一物种可表现不同生活史；需要结合年龄、地点和长期观察。",
+    "wrong_zh": "关键不是把所有个体归为同一种命运，而是认识樱鳟存在降海型与河川残留型。",
+}
+FISH["galjoen"]["quiz"] = {
+    "question_zh": "海藻林里鱼体看起来很黑，为什么不能仅凭颜色鉴定南非黑鲷？",
+    "choices_zh": ["水下光线与背景会改变视觉颜色，还要结合高侧扁体型和鳍条", "黑色鱼一定都是南非黑鲷", "只需看捕获地点"],
+    "answer": 1,
+    "explanation_zh": "正确。光线、深度和应激都会改变观感；鉴定必须组合多个形态与生境线索。",
+    "wrong_zh": "单一颜色和单一地点都可能误导。尝试组合体型、鳍条、花纹与生境。",
+}
+
 
 BAITS = {
     "earthworm": {"id": "earthworm", "name": "蚯蚓", "name_en": "Earthworm", "cost": 8,
@@ -220,4 +259,3 @@ def install(namespace):
     namespace["DIVE_EVENTS"].clear()
     namespace["DIVE_ENCOUNTERS"][:] = []
     namespace["_REAL_WORLD_JUNK"] = SURFACE_JUNK
-
