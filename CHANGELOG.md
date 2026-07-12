@@ -7,6 +7,9 @@
 - Replaced all playable fantasy locations, species, treasure, bait, event, and
   dive content with an original real-world ecology field journal.
 - Added English canonical data with Chinese-default narration.
+- Added persistent `language zh|en`; both interfaces cover every public
+  command, science note, correction exercise, wildlife record, and ecological
+  relationship. English-mode tests reject leaked CJK text.
 - Added Colorado, Hokkaido, Cape, Amazon, Lake Baikal, and Mekong habitats.
 - Added real species records with Latin names, bilingual science notes,
   identification marks, origin, and educational conservation flags.

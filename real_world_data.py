@@ -337,6 +337,36 @@ FISH["galjoen"]["quiz"] = {
     "wrong_zh": "单一颜色和单一地点都可能误导。尝试组合体型、鳍条、花纹与生境。",
 }
 
+_QUIZ_EN = {
+    "colorado_river_cutthroat": {
+        "question_en": "The fish has an orange-red slash below the jaw and spots concentrated near the tail. Which conclusion is best supported?",
+        "choices_en": ["Rainbow trout, because every trout has a pink stripe", "Cutthroat trout; the jaw slash and spot distribution are key", "Body size alone is enough"],
+        "explanation_en": "Correct. The jaw slash is a key clue; overall color and size vary with age and environment.",
+        "wrong_en": "Do not rely on overall color or size. Recheck the jaw slash and the distribution of spots."},
+    "rainbow_trout": {
+        "question_en": "Which feature best separates a rainbow trout from a commonly confused brown trout?",
+        "choices_en": ["Numerous small dark spots across the back, dorsal fin, and usually the tail", "Whether the fish looks silver", "Whether it is longer than 30 cm"],
+        "explanation_en": "Correct. Fine dark spotting on the back and fins is more useful than variable color or length.",
+        "wrong_en": "Silver color and length vary. Focus on fin and spot distribution."},
+    "lake_trout": {
+        "question_en": "What misconception is encouraged by the common name 'lake trout'?",
+        "choices_en": ["It can only live beside a lake", "It is a char in genus Salvelinus, not a typical trout", "It has no spots"],
+        "explanation_en": "Correct. Common names are not strict taxonomy; lake trout belongs to Salvelinus.",
+        "wrong_en": "This is a common-name trap. Check the genus Salvelinus before classifying it."},
+    "cherry_salmon": {
+        "question_en": "Why can juvenile parr marks not prove that a small cherry salmon will never enter the sea?",
+        "choices_en": ["Every small fish goes to sea", "The species has sea-run and stream-resident life histories; juvenile appearance alone cannot predict the outcome", "Marks have no relationship to life history"],
+        "explanation_en": "Correct. One species can express different life histories, so age, place, and repeated observation matter.",
+        "wrong_en": "Cherry salmon can be sea-run or stream-resident; do not assign every juvenile the same future."},
+    "galjoen": {
+        "question_en": "Why is a nearly black appearance in kelp habitat insufficient to identify galjoen?",
+        "choices_en": ["Underwater light and background alter apparent color; body shape and fin rays also matter", "Every black fish is a galjoen", "Location alone is enough"],
+        "explanation_en": "Correct. Light, depth, and stress alter appearance; combine multiple form and habitat clues.",
+        "wrong_en": "One color and one location can mislead. Combine body shape, fins, pattern, and habitat."},
+}
+for _fish_id, _translations in _QUIZ_EN.items():
+    FISH[_fish_id]["quiz"].update(_translations)
+
 # Behavior tags used by the deterministic day-cycle layer. These are modest
 # probability nudges, never guarantees: habitat, season, water, and bait still
 # combine with time of day.
@@ -377,6 +407,29 @@ CONDITIONS = {
         {"name_zh": "旱季主槽收缩", "name_en": "Dry-season channel contraction", "fact_zh": "水位下降使深槽和支流汇口成为关键避难空间。", "tag_weight_mult": {"large_river": 1.3, "schooling": 1.2}}],
 }
 
+_CONDITION_FACT_EN = {
+    "Snowmelt high water": "Snowmelt lowers water temperature and raises velocity, pushing fish toward slower refuges.",
+    "Clear low water": "Low water improves visibility but also makes movement on the bank easier for fish to detect.",
+    "Calm sheltered cove": "Sheltered coves warm quickly, so warm-water fish may approach shallow structure.",
+    "Stable cold depth": "Deep water can remain cold, but fish still require enough dissolved oxygen.",
+    "Clear shaded flow": "Riparian shade limits warming and supplies terrestrial insects to the river food web.",
+    "Rain-swollen flow": "Rising flow rearranges riffle and pool habitat and can alter migration routes.",
+    "Slack water at a kelp edge": "Kelp edges combine cover with open feeding surfaces in a dense transition zone.",
+    "Turbid harbor edge": "Turbidity reduces visual range and can favor lateral-line sensing or ambush behavior.",
+    "Kelp-forest surge": "Surge repeatedly opens and closes kelp corridors, challenging reef fish to hold position.",
+    "Cold upwelling": "Upwelling brings cold, nutrient-rich deep water toward the productive surface food web.",
+    "Wind-current line": "Current lines concentrate plankton and small fish, attracting pelagic predators.",
+    "Current-mixing zone": "A water-mass boundary is dynamic, shifting with wind and sea state rather than forming a fixed line.",
+    "Floodwater enters the forest": "Rising water opens routes to fruit, seeds, and shelter beneath the forest canopy.",
+    "Falling water concentrates in lakes": "Falling water shrinks habitat while predation and low-oxygen pressure may rise together.",
+    "Clear cold littoral water": "Cold transparency aids observation, but endemic organisms may tolerate only a narrow temperature range.",
+    "Tributary plume": "River inflow creates a transition zone with distinct temperature, sediment, and chemistry.",
+    "Rising flood pulse": "Floodwater reconnects the main channel and floodplain, expanding feeding and nursery habitat.",
+    "Dry-season channel contraction": "Falling water makes deep channels and tributary junctions critical refuges."}
+for _condition_pool in CONDITIONS.values():
+    for _condition in _condition_pool:
+        _condition["fact_en"] = _CONDITION_FACT_EN[_condition["name_en"]]
+
 
 BAITS = {
     "earthworm": {"id": "earthworm", "name": "蚯蚓", "name_en": "Earthworm", "cost": 8,
@@ -386,6 +439,9 @@ BAITS = {
     "soft_plastic": {"id": "soft_plastic", "name": "软虫拟饵", "name_en": "Soft Plastic", "cost": 18,
                      "description": "可慢速搜索岩缝和底层，但也更容易挂底。", "effects": {"tag_weight_mult": {"bottom": 1.4, "rocky": 1.15}, "junk_chance_mult": 1.15}},
 }
+BAITS["earthworm"]["description_en"] = "General natural bait suited to streams and reservoirs."
+BAITS["spoon_lure"]["description_en"] = "Flash imitates a struggling small fish and favors active predators."
+BAITS["soft_plastic"]["description_en"] = "Can search rock gaps and bottom habitat slowly, with a higher snag risk."
 
 SURFACE_JUNK = {
     "colorado_headwaters": ["一截被水獭啃过的树枝", "一团废弃尼龙鱼线", "一枚无倒刺旧鱼钩", "一片被磨圆的花岗岩"],
@@ -441,6 +497,20 @@ RELATIONSHIPS = [
      "title_zh": "小鱼也能移动巨量生物量", "title_en": "Small fish can move enormous biomass",
      "fact_zh": "个体尺寸很小的洄游鱼能以庞大鱼群移动营养与能量；生态重要性不能只按单条鱼的重量排序。"},
 ]
+
+_RELATION_FACT_EN = {
+    "colorado_native_refuge": "Cold headwaters with managed connectivity can shelter native cutthroat trout. Introduced trout may add competition, predation, or hybridization pressure depending on species and watershed.",
+    "hokkaido_migration_corridor": "Riparian forest, pools, riffles, and estuary are not isolated sites; together they determine whether sea-run and stream-resident life histories can be completed.",
+    "hokkaido_kelp_edge": "Complex rocky coasts place shelter, spawning sites, ambush cover, and open feeding surfaces close together, so bottom structure can reorganize the community.",
+    "cape_kelp_architecture": "Kelp changes flow, cover, and attachment surfaces. Fish use a three-dimensional habitat moving with surge, not a static plant backdrop.",
+    "amazon_fruit_link": "Floodwater carries fruit and seeds below the canopy. Fish consume and redistribute them, linking forest and river into one seasonal system.",
+    "amazon_managed_arapaima": "Arapaima must surface for air, enabling skilled community counts. Monitoring, zoning, and lake protection make management more than unlimited permission to harvest.",
+    "baikal_pelagic_chain": "Planktonic crustaceans support water-column consumers such as omul and golomyanka, which in turn are important within the Baikal seal food web.",
+    "baikal_slow_recovery": "Baikal sturgeon mature slowly and depend on tributaries to spawn; sustained loss of adults or young cannot be replaced by rapid reproduction.",
+    "mekong_connected_river": "Large migratory fish link deep pools, main channel, tributaries, and spawning grounds into one life-history route; protecting one site cannot replace corridor connectivity.",
+    "mekong_small_fish_scale": "Small migratory fish can move nutrients and energy in enormous schools; ecological importance cannot be ranked by individual body mass alone."}
+for _relationship in RELATIONSHIPS:
+    _relationship["fact_en"] = _RELATION_FACT_EN[_relationship["id"]]
 
 
 def _wild(id, en, zh, group, locations, fact_en, fact_zh, seasons=None, status="observe_only"):

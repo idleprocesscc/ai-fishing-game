@@ -15,8 +15,9 @@ real-world field-journal system.
   maintainable open-source data.
 - **Chinese is the default player experience** for narration and concise
   science explanations.
-- Species records retain both `*_en` and `*_zh` fields so a complete English
-  interface can be added without rewriting the world database.
+- **English is also a complete playable interface.** Use `language en` or
+  `language zh`; the choice persists in the JSON save. Automated coverage runs
+  the entire public English command surface and rejects any leaked CJK text.
 
 ## Current world
 
@@ -110,6 +111,7 @@ consuming the game PRNG, so identical seeds and commands remain reproducible.
 
 | Command | Purpose |
 | --- | --- |
+| `language zh\|en` | Persistently switch the complete Chinese or English interface. |
 | `help` | Show the in-game command guide. |
 | `status` | Show points, location, season, water condition, bait, and progress. |
 | `conditions` | Explain the current water state and ecological weighting. |

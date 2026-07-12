@@ -6,12 +6,17 @@
     "properties": {
       "action": {
         "type": "string",
-        "enum": ["status", "conditions", "shop", "buy", "cast", "goto", "inventory", "sell", "encyclopedia", "journal", "ecosystem", "identify", "look", "batch"],
+        "enum": ["language", "status", "conditions", "shop", "buy", "cast", "goto", "inventory", "sell", "encyclopedia", "journal", "ecosystem", "identify", "look", "batch"],
         "description": "Field-journal action to perform."
       },
       "choice": {
         "type": "number",
         "description": "For identify: answer option number, starting at 1. Omit to show the field-mark exercise."
+      },
+      "language": {
+        "type": "string",
+        "enum": ["zh", "en"],
+        "description": "For language: persist Chinese or English interface mode."
       },
       "bait_id": {
         "type": "string",

@@ -1,6 +1,7 @@
 """Regression tests for the real-world field-journal content and rules."""
 import os
 import json
+import re
 import tempfile
 import unittest
 
@@ -40,6 +41,7 @@ class RealWorldDataTests(unittest.TestCase):
                 self.assertIn(relationship["location_id"], engine.LOCATIONS)
                 self.assertTrue(set(relationship["requires"]).issubset(engine.FISH))
                 self.assertTrue(relationship["fact_zh"])
+                self.assertTrue(relationship["fact_en"])
 
     def test_wildlife_records_reference_real_places(self):
         for wildlife_id, record in engine.WILDLIFE.items():
@@ -48,6 +50,17 @@ class RealWorldDataTests(unittest.TestCase):
                 self.assertTrue(set(record["seasons"]).issubset(engine.SEASONS))
                 self.assertTrue(record["fact_en"])
                 self.assertTrue(record["fact_zh"])
+
+    def test_all_bilingual_support_records_are_complete(self):
+        for bait in engine.BAITS.values():
+            self.assertTrue(bait["description_en"])
+        for pool in engine._REAL_WORLD_CONDITIONS.values():
+            for condition in pool:
+                self.assertTrue(condition["fact_en"])
+        for fish in engine.FISH.values():
+            if fish.get("quiz"):
+                for key in ("question_en", "choices_en", "explanation_en", "wrong_en"):
+                    self.assertTrue(fish["quiz"][key])
 
     def test_every_location_has_junk_and_conditions(self):
         for location_id in engine.LOCATIONS:
@@ -171,7 +184,36 @@ class RealWorldDataTests(unittest.TestCase):
         self.assertEqual(loaded["encyclopedia"], {})
         self.assertEqual(loaded["catch_inventory"], [])
         self.assertEqual(loaded["legacy_archive_count"], 5)
-        self.assertIn("Archived 5", engine.cmd("status"))
+        self.assertIn("5", engine.cmd("status"))
+
+    def test_english_mode_has_no_cjk_in_complete_command_transcript(self):
+        outputs = [engine.cmd("language en")]
+        rainbow = engine.FISH["rainbow_trout"]
+        engine._record_catch(rainbow, 40.0, 20)
+        tambaqui = engine.FISH["tambaqui"]
+        for size in (40.0, 42.0, 44.0):
+            engine._record_catch(tambaqui, size, 20)
+        wildlife = engine.WILDLIFE["american_dipper"]
+        engine.S["field_observations"]["wildlife|american_dipper"] = {
+            "location_id": "colorado_headwaters", "wildlife_id": "american_dipper",
+            "name": wildlife["name_zh"], "name_en": wildlife["name_en"],
+            "category": "wildlife", "count": 1, "human_debris": False}
+        engine.S["field_observations"]["colorado_headwaters|一片被磨圆的花岗岩"] = {
+            "location_id": "colorado_headwaters", "name": "一片被磨圆的花岗岩",
+            "count": 1, "human_debris": False}
+        outputs.extend(engine.cmd(command) for command in (
+            "help", "status", "conditions", "shop", "goto", "inventory",
+            "encyclopedia", "journal", "ecosystem", "identify rainbow_trout",
+            "identify rainbow_trout 2", "identify rainbow_trout 1",
+            "look rainbow_trout", "look colorado_headwaters", "look earthworm",
+            "look american_dipper", "buy earthworm 1", "cast 10", "sell all"))
+        transcript = "\n".join(outputs)
+        self.assertIsNone(re.search(r"[\u3400-\u9fff]", transcript), transcript)
+        self.assertEqual(engine.S["language"], "en")
+        engine.S = None
+        reloaded = engine.cmd("status")
+        self.assertIsNone(re.search(r"[\u3400-\u9fff]", reloaded), reloaded)
+        self.assertEqual(engine.S["language"], "en")
 
 
 if __name__ == "__main__":

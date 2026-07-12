@@ -16,6 +16,7 @@ Works with Claude, ChatGPT code execution, or another agent with Python.
 import fishing
 
 print(fishing.new_game(2026))
+print(fishing.cmd("language en"))  # omit this line to keep Chinese-default play
 print(fishing.cmd("help"))
 print(fishing.cmd("status"))
 print(fishing.cmd("conditions"))

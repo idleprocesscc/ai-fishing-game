@@ -24,6 +24,7 @@ You are a field observer, not the developer. Play by reading cmd() results:
 
     import fishing
     print(fishing.cmd("help"))      # rules
+    print(fishing.cmd("language en")) # optional; Chinese is the default
     print(fishing.cmd("status"))    # current state
     print(fishing.cmd("cast"))      # cast once
     print(fishing.cmd("cast 10"))   # batch-cast 10 times
