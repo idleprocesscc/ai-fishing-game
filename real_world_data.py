@@ -64,6 +64,27 @@ LOCATIONS = {
         biome="exposed temperate ocean"),
 }
 
+LOCATIONS.update({
+    "amazon_flooded_forest": _loc(
+        "amazon_flooded_forest", "Amazon Flooded Forest", "亚马孙泛滥森林",
+        "Seasonally flooded forest where fish move among submerged trunks and feed on fruits, seeds, insects, and other fish.",
+        "季节性洪水淹没森林，鱼类穿行于树干之间，利用果实、种子、昆虫和其他鱼类形成的食物网。",
+        {"tropical": 1.4, "floodplain": 1.7, "fruit_eater": 1.35}, 1050, 0.22,
+        biome="tropical flooded forest"),
+    "baikal_littoral": _loc(
+        "baikal_littoral", "Lake Baikal Littoral", "贝加尔湖沿岸带",
+        "Cold, oxygen-rich lake margins connected to tributaries, rocky slopes, and an exceptionally endemic food web.",
+        "寒冷富氧的湖岸与支流、岩质湖坡相连，承载高度特有的食物网。",
+        {"coldwater": 1.5, "baikal_endemic": 1.6, "lake": 1.35}, 1250, 0.16,
+        biome="ancient cold lake"),
+    "mekong_mainstem": _loc(
+        "mekong_mainstem", "Mekong Mainstem", "湄公河主河道",
+        "A vast tropical river whose flood pulse and long migration routes connect channels, floodplains, and tributaries.",
+        "巨大的热带河流以洪水脉动和长距离洄游路线连接主河道、泛滥平原与支流。",
+        {"tropical": 1.4, "large_river": 1.7, "migratory": 1.5}, 1450, 0.26,
+        biome="tropical large river"),
+})
+
 
 def _fish(id, en, zh, latin, rarity, size, value, locations, seasons, tags,
           fact_en, fact_zh, identify_en, identify_zh, status="least_concern",
@@ -190,6 +211,93 @@ FISH = {
         "黄色尾鳍和淡黄色体侧带与流线型蓝灰身体形成鲜明对比。"),
 }
 
+FISH.update({
+    "arapaima": _fish(
+        "arapaima", "Arapaima", "巨骨舌鱼", "Arapaima gigas", "rare", (80, 300), 90,
+        ["amazon_flooded_forest"], ALL_SEASONS, ["tropical", "floodplain", "air_breathing"],
+        "Arapaima must surface to breathe air; community counts of surfacing adults help support managed conservation harvests.",
+        "巨骨舌鱼必须浮到水面呼吸空气；社区可利用成鱼换气行为进行计数，支撑保护性管理。",
+        "Large plate-like scales, a long body, and reddish color toward the tail distinguish adults.",
+        "成鱼具有大型板状鳞片、修长身体，尾部常带红色。", "managed", "native", True),
+    "tambaqui": _fish(
+        "tambaqui", "Tambaqui", "大盖巨脂鲤", "Colossoma macropomum", "common", (25, 100), 28,
+        ["amazon_flooded_forest"], ALL_SEASONS, ["tropical", "floodplain", "fruit_eater"],
+        "During floods, tambaqui enter inundated forest and consume fruits and seeds, linking fish movement with forest ecology.",
+        "洪水期大盖巨脂鲤进入淹水森林取食果实和种子，把鱼类迁移与森林生态连接起来。",
+        "A deep body and strong molar-like teeth suit crushing hard fruits and seeds.",
+        "高而侧扁的身体与强壮的臼齿状牙齿适合压碎坚硬果实和种子。"),
+    "matrinxa": _fish(
+        "matrinxa", "Matrinxã", "亚马孙布氏脂鲤", "Brycon amazonicus", "uncommon", (25, 75), 34,
+        ["amazon_flooded_forest"], ["spring", "summer", "autumn"], ["tropical", "floodplain", "migratory"],
+        "Matrinxã move through river and floodplain habitat and eat a flexible mix of plant and animal food.",
+        "亚马孙布氏脂鲤在河道与泛滥平原之间移动，食物包含多种植物和动物来源。",
+        "The streamlined silver body has a darker back and a distinct dark mark near the tail base.",
+        "流线型银色身体背部较深，尾柄附近有明显深色标记。"),
+    "electric_eel": _fish(
+        "electric_eel", "Electric Eel", "电鳗", "Electrophorus electricus", "rare", (50, 200), 62,
+        ["amazon_flooded_forest"], ALL_SEASONS, ["tropical", "floodplain", "electric", "air_breathing"],
+        "Despite its name, an electric eel is a knifefish, not a true eel; it also breathes air at the surface.",
+        "电鳗并不是真正的鳗鲡，而属于裸背电鳗类；它也需要到水面呼吸空气。",
+        "The long cylindrical body lacks the continuous dorsal fin expected on many true eels.",
+        "身体细长近圆筒状，没有许多真正鳗类那种连续而明显的背鳍。", "observe_only", "native", True),
+    "baikal_omul": _fish(
+        "baikal_omul", "Baikal Omul", "贝加尔欧姆白鲑", "Coregonus migratorius", "uncommon", (25, 60), 36,
+        ["baikal_littoral"], ["spring", "summer", "autumn"], ["coldwater", "lake", "migratory", "baikal_endemic"],
+        "Omul feed in the lake and migrate into tributaries to spawn, with several ecological populations using the basin differently.",
+        "贝加尔欧姆白鲑在湖中摄食并进入支流繁殖，不同生态种群以不同方式利用湖盆。",
+        "A terminal mouth, relatively large eyes, small scales, and many long gill rakers fit plankton feeding.",
+        "端位口、较大的眼、小鳞片与细长而数量较多的鳃耙适合滤食浮游生物。", "regulated", "native", True),
+    "small_golomyanka": _fish(
+        "small_golomyanka", "Small Golomyanka", "小胎生贝湖鱼", "Comephorus dybowskii", "rare", (8, 16), 48,
+        ["baikal_littoral"], ALL_SEASONS, ["coldwater", "deep", "pelagic", "baikal_endemic"],
+        "This translucent endemic gives birth to live larvae and makes daily vertical migrations through the cold water column.",
+        "这种半透明特有鱼会产下活体仔鱼，并在寒冷水柱中进行昼夜垂直迁移。",
+        "A translucent scaleless-looking body, large pectoral fins, and reduced pelvic fins suit open deep water.",
+        "半透明且近乎无鳞的身体、较大胸鳍和退化腹鳍适应深层开放水域。", "research_observation", "endemic", True),
+    "baikal_sturgeon": _fish(
+        "baikal_sturgeon", "Baikal Sturgeon", "贝加尔鲟", "Acipenser baerii baicalensis", "rare", (70, 180), 95,
+        ["baikal_littoral"], ["spring", "summer", "autumn"], ["coldwater", "bottom", "migratory"],
+        "Baikal sturgeon mature slowly and spawn in major tributaries, making loss of young or spawning adults especially costly.",
+        "贝加尔鲟成熟缓慢并进入大型支流繁殖，因此幼鱼或繁殖成鱼的损失尤其难以恢复。",
+        "Five rows of bony scutes, an underslung mouth, and four barbels identify a sturgeon.",
+        "五列骨板、腹面的嘴和四根触须是鲟鱼的典型组合特征。", "endangered", "native", True),
+    "baikal_grayling": _fish(
+        "baikal_grayling", "Baikal Grayling", "贝加尔茴鱼", "Thymallus baicalensis", "common", (20, 55), 24,
+        ["baikal_littoral"], ["spring", "summer", "autumn"], ["coldwater", "lake", "stream"],
+        "Grayling move between lake margins and flowing tributary habitat and use a tall dorsal fin for stability and display.",
+        "贝加尔茴鱼利用湖岸和流动支流水域，高大的背鳍兼有稳定身体与展示作用。",
+        "The sail-like dorsal fin is the clearest field mark, but local forms still require careful context.",
+        "帆状高背鳍是最醒目的特征，但鉴定地方类型仍需结合具体环境。"),
+    "mekong_giant_catfish": _fish(
+        "mekong_giant_catfish", "Mekong Giant Catfish", "湄公河巨鲶", "Pangasianodon gigas", "rare", (100, 300), 110,
+        ["mekong_mainstem"], ["spring", "summer"], ["tropical", "large_river", "migratory"],
+        "One of the world's largest freshwater fishes, this highly threatened migratory catfish depends on connected river habitat.",
+        "湄公河巨鲶是世界最大的淡水鱼之一；这种高度受威胁的洄游鱼依赖连通的河流生境。",
+        "Adults are massive, largely toothless, and lack the long barbels seen on many other catfish.",
+        "成鱼体型巨大、牙齿退化，也缺少许多其他鲶鱼常见的长触须。", "critically_endangered", "native", True),
+    "giant_barb": _fish(
+        "giant_barb", "Giant Barb", "暹罗巨鲤", "Catlocarpio siamensis", "rare", (80, 250), 100,
+        ["mekong_mainstem"], ["summer", "autumn"], ["tropical", "large_river", "migratory"],
+        "Giant barb are large native cyprinids whose decline makes them ambassadors for protecting Mekong migration routes.",
+        "暹罗巨鲤是大型原生鲤科鱼，其衰退使它成为保护湄公河洄游通道的旗舰物种。",
+        "The huge deep body, large scales, and lack of catfish barbels separate it from the river's giant pangasiids.",
+        "巨大的高体型与大鳞片、且没有鲶鱼触须，可与大型巨鲶类区分。", "critically_endangered", "native", True),
+    "striped_catfish": _fish(
+        "striped_catfish", "Striped Catfish", "低眼巨鲶", "Pangasianodon hypophthalmus", "common", (30, 130), 28,
+        ["mekong_mainstem"], ALL_SEASONS, ["tropical", "large_river", "migratory"],
+        "Wild striped catfish migrate through the Mekong system; the species is also widely raised in aquaculture.",
+        "野生低眼巨鲶在湄公河水系中迁移，同时也是广泛养殖的鱼类。",
+        "Juveniles show dark horizontal stripes; the eyes sit low on the head relative to many similar catfish.",
+        "幼鱼体侧有深色横纹，眼睛在头部的位置比许多近似鲶鱼更低。"),
+    "siamese_mud_carp": _fish(
+        "siamese_mud_carp", "Siamese Mud Carp", "暹罗泥鲤", "Henicorhynchus siamensis", "common", (10, 25), 14,
+        ["mekong_mainstem"], ALL_SEASONS, ["tropical", "large_river", "schooling", "migratory"],
+        "Small migratory fishes can move biomass and nutrients through the river on a scale that individual size hides.",
+        "小型洄游鱼能以巨大鱼群在河流中搬运营养与生物量，单个个体的尺寸掩盖了这种尺度。",
+        "A small silvery cyprinid is best identified with fin position, scale counts, and local keys rather than color alone.",
+        "这种小型银色鲤科鱼不能只凭颜色，应结合鳍位、鳞片计数和当地检索表。"),
+})
+
 # Identification exercises are observations, not trivia detached from the fish.
 # Each asks the player to use a visible field mark that separates a commonly
 # confused species or corrects a misleading common name.
@@ -248,6 +356,15 @@ CONDITIONS = {
     "cape_open_water": [
         {"name_zh": "风成流线", "name_en": "Wind-current line", "fact_zh": "流线会聚集浮游生物和小鱼，从而吸引中上层捕食者。", "tag_weight_mult": {"pelagic": 1.4}},
         {"name_zh": "洋流混合带", "name_en": "Current-mixing zone", "fact_zh": "水团交界并非固定边界，而是随风与海况移动的动态区域。", "tag_weight_mult": {"migratory": 1.3, "marine": 1.15}}],
+    "amazon_flooded_forest": [
+        {"name_zh": "洪水进入森林", "name_en": "Floodwater enters the forest", "fact_zh": "上涨的河水打开通往果实、种子和林下庇护所的新通道。", "tag_weight_mult": {"floodplain": 1.4, "fruit_eater": 1.5}},
+        {"name_zh": "退水汇入湖洼", "name_en": "Falling water concentrates in lakes", "fact_zh": "退水缩小可用水域，捕食与缺氧压力可能同时上升。", "tag_weight_mult": {"air_breathing": 1.45, "tropical": 1.1}}],
+    "baikal_littoral": [
+        {"name_zh": "沿岸冷水清澈", "name_en": "Clear cold littoral water", "fact_zh": "低温高透明度有利于观察，但湖中生物适应的温度范围可能很窄。", "tag_weight_mult": {"coldwater": 1.35, "lake": 1.15}},
+        {"name_zh": "支流羽状水团", "name_en": "Tributary plume", "fact_zh": "支流入湖形成温度、沉积物和化学条件不同的过渡水团。", "tag_weight_mult": {"migratory": 1.4, "stream": 1.2}}],
+    "mekong_mainstem": [
+        {"name_zh": "洪水脉动上涨", "name_en": "Rising flood pulse", "fact_zh": "洪水把主河道与泛滥平原重新连通，扩大觅食和育幼空间。", "tag_weight_mult": {"migratory": 1.4, "large_river": 1.15}},
+        {"name_zh": "旱季主槽收缩", "name_en": "Dry-season channel contraction", "fact_zh": "水位下降使深槽和支流汇口成为关键避难空间。", "tag_weight_mult": {"large_river": 1.3, "schooling": 1.2}}],
 }
 
 
@@ -267,6 +384,9 @@ SURFACE_JUNK = {
     "hokkaido_rocky_coast": ["一个旧玻璃浮球碎片", "一团海带", "一只空贝壳", "一段幽灵渔网"],
     "cape_kelp_forest": ["一根脱落的巨藻固着器", "一只空鲍壳", "一段缠在海藻上的鱼线", "一块被浪磨圆的海玻璃"],
     "cape_open_water": ["一只漂流瓶", "一块风化浮木", "一段旧船绳", "一只被咬过的拟饵"],
+    "amazon_flooded_forest": ["一枚被鱼啃过的硬果核", "一段长满附生物的树枝", "一只空棕榈种壳", "一团需要清理的尼龙线"],
+    "baikal_littoral": ["一块圆润的湖岸卵石", "一小片脱落绿海绵组织", "一只空端足类蜕壳", "一段废弃透明鱼线"],
+    "mekong_mainstem": ["一枚漂流植物种子", "一截被水磨亮的竹片", "一只旧塑料凉鞋", "一团废弃刺网线"],
 }
 
 
